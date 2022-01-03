@@ -534,6 +534,24 @@ public:
      */
     lorawan_status_t cancel_sending(void);
 
+    /** Get the current session
+     *
+     * Retrieves the complete MAC session, including keys, frame counters, RX configuration
+     *
+     * @param loramac_protocol_params A pointer to a protocol parameters structure
+     * @return LORAWAN_STATUS_OK
+     */
+    lorawan_status_t get_session(loramac_protocol_params*);
+
+    /** Set the current session
+     *
+     * Sets the complete MAC session, including keys, frame counters and RX configuration
+     *
+     * @param loramac_protocol_params A pointer to a protocol parameters structure
+     * @return LORAWAN_STATUS_OK
+     */
+    lorawan_status_t set_session(loramac_protocol_params*);
+
     /** Provides exclusive access to the stack.
      *
      * Use only if the stack is being run in it's own separate thread.
