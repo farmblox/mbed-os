@@ -108,6 +108,10 @@ public:
     I2C(const i2c_pinmap_t &static_pinmap);
     I2C(const i2c_pinmap_t &&) = delete; // prevent passing of temporary objects
 
+    void init(void);
+    
+    void free(void);
+
     /** Set the frequency of the I2C interface
      *
      *  @param hz The bus frequency in hertz

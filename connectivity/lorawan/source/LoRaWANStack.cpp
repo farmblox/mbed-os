@@ -647,6 +647,14 @@ void LoRaWANStack::post_process_tx_with_reception()
 
 void LoRaWANStack::post_process_tx_no_reception()
 {
+    if (_loramac.get_mlme_confirmation()->req_type == MLME_LINK_CHECK
+            && _link_check_requested) {
+        if (_callbacks.link_check_resp) {
+            const int ret = _queue->call(_callbacks.link_check_resp, 0, 0);
+            MBED_ASSERT(ret != 0);
+            (void) ret;
+        }
+    }
     if (_loramac.get_mcps_confirmation()->req_type == MCPS_CONFIRMED) {
         if (_loramac.continue_sending_process()) {
             _ctrl_flags &= ~TX_DONE_FLAG;
@@ -950,6 +958,12 @@ void LoRaWANStack::mlme_confirm_handler()
                                     _callbacks.link_check_resp,
                                     _loramac.get_mlme_confirmation()->demod_margin,
                                     _loramac.get_mlme_confirmation()->nb_gateways);
+                MBED_ASSERT(ret != 0);
+                (void) ret;
+            }
+        } else {
+            if (_callbacks.link_check_resp) {
+                const int ret = _queue->call(_callbacks.link_check_resp, 0, 0);
                 MBED_ASSERT(ret != 0);
                 (void) ret;
             }

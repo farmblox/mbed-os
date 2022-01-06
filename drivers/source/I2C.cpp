@@ -57,6 +57,22 @@ I2C::I2C(const i2c_pinmap_t &static_pinmap) :
     unlock();
 }
 
+void I2C::init(void)
+{
+    lock();
+    _i2c = i2c_t();
+    recover(_sda, _scl);
+    i2c_init(&_i2c, _sda, _scl);
+    unlock();
+}
+
+void I2C::free(void) 
+{ 
+    lock(); 
+    i2c_free(&_i2c); 
+    unlock(); 
+}
+
 void I2C::frequency(int hz)
 {
     lock();
