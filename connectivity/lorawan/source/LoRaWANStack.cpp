@@ -919,7 +919,7 @@ lorawan_status_t LoRaWANStack::handle_connect(bool is_otaa)
         //_lw_session.uplink_counter; //Get from NVM
 
         tr_debug("Initiating ABP");
-        tr_debug("Frame Counters. UpCnt=%lu, DownCnt=%lu",
+        tr_debug("Frame Counters. UpCnt=%u, DownCnt=%u",
                  _lw_session.uplink_counter, _lw_session.downlink_counter);
         _ctrl_flags &= ~USING_OTAA_FLAG;
     }
