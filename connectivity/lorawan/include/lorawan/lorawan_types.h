@@ -219,6 +219,7 @@ typedef enum lora_events {
     RX_DONE,
     RX_TIMEOUT,
     RX_ERROR,
+    ACK_OK,
     JOIN_FAILURE,
     UPLINK_REQUIRED,
     AUTOMATIC_UPLINK_ERROR,
