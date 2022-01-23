@@ -107,9 +107,9 @@ public:
      */
     I2C(const i2c_pinmap_t &static_pinmap);
     I2C(const i2c_pinmap_t &&) = delete; // prevent passing of temporary objects
-
-    void init(void);
     
+    /** Frees the I2C bus and allows the device to sleep (if blocked).
+     */
     void free(void);
 
     /** Set the frequency of the I2C interface
