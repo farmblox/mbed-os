@@ -398,7 +398,8 @@ public:
         return _loramac.get_session(params);
     }
 
-    lorawan_status_t set_session(loramac_protocol_params *params) {
+    lorawan_status_t set_session(loramac_protocol_params *params) 
+    {
         return _loramac.set_session(params);
     }
 

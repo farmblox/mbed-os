@@ -156,6 +156,11 @@ SPI::~SPI()
     unlock();
 }
 
+void SPI::free()
+{
+    spi_free(&_peripheral->spi);
+}
+
 SPI::spi_peripheral_s *SPI::_lookup(SPI::SPIName name)
 {
     SPI::spi_peripheral_s *result = nullptr;

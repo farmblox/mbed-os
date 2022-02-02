@@ -220,6 +220,11 @@ int SPIFBlockDevice::deinit()
     }
     _is_initialized = false;
 
+    status = _spi_free();
+    if (status != SPIF_BD_ERROR_OK)  {
+        tr_error("SPI free");
+    }
+
 exit_point:
     _mutex->unlock();
 
@@ -461,6 +466,13 @@ const char *SPIFBlockDevice::get_type() const
 /***************************************************/
 /*********** SPI Driver API Functions **************/
 /***************************************************/
+
+spif_bd_error SPIFBlockDevice::_spi_free()
+{
+    _spi.free();
+    return SPIF_BD_ERROR_OK;
+}
+
 spif_bd_error SPIFBlockDevice::_spi_set_frequency(int freq)
 {
     _spi.frequency(freq);
@@ -488,9 +500,10 @@ spif_bd_error SPIFBlockDevice::_spi_send_read_command(int read_inst, uint8_t *bu
     }
 
     // Read Data
-    for (bd_size_t i = 0; i < size; i++) {
-        buffer[i] = _spi.write(0);
-    }
+    // for (bd_size_t i = 0; i < size; i++) {
+    //     buffer[i] = _spi.write(0);
+    // }
+    _spi.write( NULL, 0, (char *)buffer, size );
 
     _spi.deselect();
 

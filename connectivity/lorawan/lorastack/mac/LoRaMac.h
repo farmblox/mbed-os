@@ -440,12 +440,14 @@ public:
     /**
      * @todo I think everything is serializable except for the multicast linked list
      */
-    lorawan_status_t get_session(loramac_protocol_params *params) {
+    lorawan_status_t get_session(loramac_protocol_params *params) 
+    {
         memcpy(params, &_params, sizeof(loramac_protocol_params));
         return LORAWAN_STATUS_OK;
     }
 
-    lorawan_status_t set_session(loramac_protocol_params *params) {
+    lorawan_status_t set_session(loramac_protocol_params *params) 
+    {
         memcpy(&_params, params, sizeof(loramac_protocol_params));
         return LORAWAN_STATUS_OK;
     }
