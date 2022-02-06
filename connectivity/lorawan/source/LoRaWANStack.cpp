@@ -651,11 +651,12 @@ void LoRaWANStack::post_process_tx_no_reception()
     if (_loramac.get_mlme_confirmation()->req_type == MLME_LINK_CHECK
             && _loramac.get_mcps_confirmation()->req_type != MCPS_CONFIRMED
             && _link_check_requested) {
-        if (_callbacks.link_check_resp) {
-            const int ret = _queue->call(_callbacks.link_check_resp, 0, 0);
-            MBED_ASSERT(ret != 0);
-            (void) ret;
-        }
+        // if (_callbacks.link_check_resp) {
+        //     const int ret = _queue->call(_callbacks.link_check_resp, 0, 0);
+        //     MBED_ASSERT(ret != 0);
+        //     (void) ret;
+        // }
+        send_event_to_application(LINK_CHECK_FAILURE);
     }
     if (_loramac.get_mcps_confirmation()->req_type == MCPS_CONFIRMED) {
         if (_loramac.continue_sending_process()) {
@@ -671,11 +672,12 @@ void LoRaWANStack::post_process_tx_no_reception()
         // handle confirmed flag link check
         if (_loramac.get_mlme_confirmation()->req_type == MLME_LINK_CHECK
                 && _link_check_requested) {
-            if (_callbacks.link_check_resp) {
-                const int ret = _queue->call(_callbacks.link_check_resp, 0, 0);
-                MBED_ASSERT(ret != 0);
-                (void) ret;
-            }
+            // if (_callbacks.link_check_resp) {
+            //     const int ret = _queue->call(_callbacks.link_check_resp, 0, 0);
+            //     MBED_ASSERT(ret != 0);
+            //     (void) ret;
+            // }
+            send_event_to_application(LINK_CHECK_FAILURE);
         }
     } else {
         _ctrl_flags |= TX_DONE_FLAG;
@@ -964,20 +966,22 @@ void LoRaWANStack::mlme_confirm_handler()
         if (_loramac.get_mlme_confirmation()->status
                 == LORAMAC_EVENT_INFO_STATUS_OK) {
 
-            if (_callbacks.link_check_resp) {
-                const int ret = _queue->call(
-                                    _callbacks.link_check_resp,
-                                    _loramac.get_mlme_confirmation()->demod_margin,
-                                    _loramac.get_mlme_confirmation()->nb_gateways);
-                MBED_ASSERT(ret != 0);
-                (void) ret;
-            }
+            // if (_callbacks.link_check_resp) {
+            //     const int ret = _queue->call(
+            //                         _callbacks.link_check_resp,
+            //                         _loramac.get_mlme_confirmation()->demod_margin,
+            //                         _loramac.get_mlme_confirmation()->nb_gateways);
+            //     MBED_ASSERT(ret != 0);
+            //     (void) ret;
+            // }
+            send_event_to_application(LINK_CHECK_SUCCESS);
         } else {
-            if (_callbacks.link_check_resp) {
-                const int ret = _queue->call(_callbacks.link_check_resp, 0, 0);
-                MBED_ASSERT(ret != 0);
-                (void) ret;
-            }
+            // if (_callbacks.link_check_resp) {
+            //     const int ret = _queue->call(_callbacks.link_check_resp, 0, 0);
+            //     MBED_ASSERT(ret != 0);
+            //     (void) ret;
+            // }
+            send_event_to_application(LINK_CHECK_FAILURE);
         }
     }
 

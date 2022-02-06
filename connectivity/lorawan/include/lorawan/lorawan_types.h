@@ -221,6 +221,8 @@ typedef enum lora_events {
     RX_ERROR,
     ACK_OK,
     JOIN_FAILURE,
+    LINK_CHECK_SUCCESS,
+    LINK_CHECK_FAILURE,
     UPLINK_REQUIRED,
     AUTOMATIC_UPLINK_ERROR,
 } lorawan_event_t;
