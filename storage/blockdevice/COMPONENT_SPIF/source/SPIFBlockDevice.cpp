@@ -77,7 +77,9 @@ enum spif_default_instructions {
     SPIF_ULBPR = 0x98, // Clears all write-protection bits in the Block-Protection register,
     SPIF_4BEN = 0xB7, // Enable 4-byte address mode
     SPIF_4BDIS = 0xE9, // Disable 4-byte address mode
+    GD_DPD  = 0xB9, // deep power down (GigaDevice)
 };
+
 
 // Mutex is used for some SPI Driver commands that must be done sequentially with no other commands in between
 // e.g. (1)Set Write Enable, (2)Program, (3)Wait Memory Ready
@@ -215,6 +217,13 @@ int SPIFBlockDevice::deinit()
 
     // Disable Device for Writing
     status = _spi_send_general_command(SPIF_WRDI, SPI_NO_ADDRESS_COMMAND, NULL, 0, NULL, 0);
+    if (status != SPIF_BD_ERROR_OK)  {
+        tr_error("Write Disable failed");
+    }
+
+    // deep power down (gigadevice only)
+    tr_debug("Deep power down enabled");
+    status = _spi_send_general_command(GD_DPD, SPI_NO_ADDRESS_COMMAND, NULL, 0, NULL, 0);
     if (status != SPIF_BD_ERROR_OK)  {
         tr_error("Write Disable failed");
     }
