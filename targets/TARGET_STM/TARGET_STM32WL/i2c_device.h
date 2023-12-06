@@ -29,8 +29,8 @@ extern "C" {
 #define I2C_IP_VERSION_V2
 
 // Common settings: I2C clock = 48 MHz, Analog filter = ON, Digital filter coefficient = 0
-#define TIMING_VAL_48M_CLK_100KHZ 0xF020FFFF // Standard modde with Rise Time = 640ns and Fall Time = 20ns 5 kHz
-// #define TIMING_VAL_48M_CLK_100KHZ  0x20E03F53  // Standard mode with Rise Time = 640ns and Fall Time = 20ns
+#define TIMING_VAL_48M_CLK_5KHZ 0xF020FFFF // Standard modde with Rise Time = 640ns and Fall Time = 20ns 5 kHz
+#define TIMING_VAL_48M_CLK_100KHZ  0x20E03F53  // Standard mode with Rise Time = 640ns and Fall Time = 20ns
 #define TIMING_VAL_48M_CLK_400KHZ  0x20500817  // Fast mode with Rise Time = 250ns and Fall Time = 100ns
 #define TIMING_VAL_48M_CLK_1MHZ    0x00500A18  // Fast mode Plus with Rise Time = 60ns and Fall Time = 100ns
 #define I2C_PCLK_48M               48000000    // 48 MHz

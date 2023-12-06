@@ -102,14 +102,14 @@ typedef struct {
 static const I2C_Charac_t I2C_Charac[] = {
     [I2C_SPEED_FREQ_STANDARD] =
     {
-        .freq = 100000,
-        .freq_min = 80000,
-        .freq_max = 120000,
+        .freq = 5000,
+        .freq_min = 4800,
+        .freq_max = 5200,
         .hddat_min = 0,
-        .vddat_max = 3450,
-        .sudat_min = 250,
-        .lscl_min = 4700,
-        .hscl_min = 4000,
+        .vddat_max = 69000,
+        .sudat_min = 5000,
+        .lscl_min = 94000,
+        .hscl_min = 80000,
         .trise = 640,
         .tfall = 20,
         .dnf = I2C_DIGITAL_FILTER_COEF,
@@ -194,7 +194,7 @@ static I2C_HandleTypeDef *i2c_handles[I2C_NUM];
 #ifdef TARGET_STM32H7
 #define FLAG_TIMEOUT ((int)0x1100)
 #else
-#define FLAG_TIMEOUT ((int)0x1000)
+#define FLAG_TIMEOUT ((int)0x1000) * 20
 #endif
 
 #ifdef I2C_IP_VERSION_V1
@@ -516,7 +516,7 @@ void i2c_init_internal(i2c_t *obj, const i2c_pinmap_t *pinmap)
     // I2C configuration
     // Default hz value used for timeout computation
     if (!obj_s->hz) {
-        obj_s->hz = 100000;    // 100 kHz per default
+        obj_s->hz = 5000;    // 100 kHz per default
     }
 
     // Reset to clear pending flags if any
@@ -723,7 +723,7 @@ void i2c_frequency(i2c_t *obj, int hz)
 
 #ifdef I2C_IP_VERSION_V2
     /*  Only predefined timing for below frequencies are supported */
-    MBED_ASSERT((hz == 100000) || (hz == 400000) || (hz == 1000000));
+    MBED_ASSERT((hz == 5000) || (hz == 100000) || (hz == 400000) || (hz == 1000000));
 
     /* Derives I2C timing value with respect to I2C input clock source speed
     and I2C bus frequency requested. "Init.Timing" is passed to this function to
@@ -1111,7 +1111,7 @@ int i2c_read(i2c_t *obj, int address, char *data, int length, int stop)
     ret = HAL_I2C_Master_Seq_Receive_IT(handle, address, (uint8_t *) data, length, obj_s->XferOperation);
 
     if (ret == HAL_OK) {
-        timeout = BYTE_TIMEOUT_US * (length + 1);
+        timeout = BYTE_TIMEOUT_US * (length + 1) * 100;
         /*  transfer started : wait completion or timeout */
         while (!(obj_s->event & I2C_EVENT_ALL) && (--timeout != 0)) {
             wait_us(1);
@@ -1845,6 +1845,9 @@ uint32_t i2c_get_timing(I2CName i2c, uint32_t current_timing, int current_hz,
 #if defined (I2C_PCLK_48M)
             case I2C_PCLK_48M:
                 switch (hz) {
+                    case 5000:
+                        tim = TIMING_VAL_48M_CLK_5KHZ;
+                        break;
                     case 100000:
                         tim = TIMING_VAL_48M_CLK_100KHZ;
                         break;
@@ -1855,7 +1858,7 @@ uint32_t i2c_get_timing(I2CName i2c, uint32_t current_timing, int current_hz,
                         tim = TIMING_VAL_48M_CLK_1MHZ;
                         break;
                     default:
-                        MBED_ASSERT((hz == 100000) || (hz == 400000) || \
+                        MBED_ASSERT((hz == 5000) || (hz == 100000) || (hz == 400000) || \
                                     (hz == 1000000));
                         break;
                 }
