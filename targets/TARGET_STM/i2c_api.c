@@ -43,6 +43,7 @@
 #include "mbed_error.h"
 #include "platform/mbed_power_mgmt.h"
 
+
 #if MBED_CONF_TARGET_I2C_TIMING_VALUE_ALGO
 /** @defgroup I2C_DEVICE_Private_Constants I2C_DEVICE Private Constants
  * @{
@@ -56,7 +57,7 @@
 #define I2C_ANALOG_FILTER_DELAY_MIN            50U   /* ns */
 #define I2C_ANALOG_FILTER_DELAY_MAX            260U  /* ns */
 #define I2C_USE_ANALOG_FILTER                  1U
-#define I2C_DIGITAL_FILTER_COEF                0U
+#define I2C_DIGITAL_FILTER_COEF                15U
 #define I2C_PRESC_MAX                          16U
 #define I2C_SCLDEL_MAX                         16U
 #define I2C_SDADEL_MAX                         16U
