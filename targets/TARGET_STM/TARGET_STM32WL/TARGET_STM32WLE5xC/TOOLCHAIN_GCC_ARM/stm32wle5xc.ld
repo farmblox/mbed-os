@@ -113,6 +113,18 @@ SECTIONS
 
     __etext = .;
     _sidata = .;
+
+    .crash_data_ram :
+    {
+        . = ALIGN(8);
+        __CRASH_DATA_RAM__ = .;
+        __CRASH_DATA_RAM_START__ = .; /* Create a global symbol at data start */
+        KEEP(*(.keep.crash_data_ram))
+        *(.m_crash_data_ram)     /* This is a user defined section */
+        . += 0x100;
+        . = ALIGN(8);
+        __CRASH_DATA_RAM_END__ = .; /* Define a global symbol at data end */
+    } > RAM
     
     .data : AT (__etext)
     {
