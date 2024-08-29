@@ -169,6 +169,14 @@ int serial_getc(serial_t *obj)
     return (int)(huart->Instance->RDR & uhMask);
 }
 
+bool serial_transmission_complete(serial_t *obj) {
+    struct serial_s *obj_s = SERIAL_S(obj);
+    UART_HandleTypeDef *huart = &uart_handlers[obj_s->index];
+
+    uint32_t transmission_complete = READ_BIT(huart->Instance->ISR, USART_ISR_TC) != 0;
+    return transmission_complete;
+}
+
 void serial_putc(serial_t *obj, int c)
 {
     struct serial_s *obj_s = SERIAL_S(obj);
