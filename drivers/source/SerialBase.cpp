@@ -132,6 +132,9 @@ int SerialBase::_base_putc(int c)
 {
     // Mutex is already held
     serial_putc(&_serial, c);
+    while (!serial_transmission_complete(&_serial)) {
+        __asm("nop");
+    }
     return c;
 }
 

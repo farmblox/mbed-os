@@ -282,6 +282,12 @@ int  serial_getc(serial_t *obj);
  */
 void serial_putc(serial_t *obj, int c);
 
+/** Check if the serial port has placed all data on the wire.
+ *
+ * @return 1 if the transmission is complete.
+ */
+bool serial_transmission_complete(serial_t *obj);
+
 /** Check if the serial peripheral is readable
  *
  * @param obj The serial object
