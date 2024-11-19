@@ -57,6 +57,13 @@ I2C::I2C(const i2c_pinmap_t &static_pinmap) :
     unlock();
 }
 
+void I2C::free(void) 
+{ 
+    lock(); 
+    i2c_free(&_i2c); 
+    unlock(); 
+}
+
 void I2C::frequency(int hz)
 {
     lock();

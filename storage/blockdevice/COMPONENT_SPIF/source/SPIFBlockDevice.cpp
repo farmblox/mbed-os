@@ -77,7 +77,9 @@ enum spif_default_instructions {
     SPIF_ULBPR = 0x98, // Clears all write-protection bits in the Block-Protection register,
     SPIF_4BEN = 0xB7, // Enable 4-byte address mode
     SPIF_4BDIS = 0xE9, // Disable 4-byte address mode
+    GD_DPD  = 0xB9, // deep power down (GigaDevice)
 };
+
 
 // Mutex is used for some SPI Driver commands that must be done sequentially with no other commands in between
 // e.g. (1)Set Write Enable, (2)Program, (3)Wait Memory Ready
@@ -218,7 +220,19 @@ int SPIFBlockDevice::deinit()
     if (status != SPIF_BD_ERROR_OK)  {
         tr_error("Write Disable failed");
     }
+
+    // deep power down (gigadevice only)
+    tr_debug("Deep power down enabled");
+    status = _spi_send_general_command(GD_DPD, SPI_NO_ADDRESS_COMMAND, NULL, 0, NULL, 0);
+    if (status != SPIF_BD_ERROR_OK)  {
+        tr_error("Write Disable failed");
+    }
     _is_initialized = false;
+
+    status = _spi_free();
+    if (status != SPIF_BD_ERROR_OK)  {
+        tr_error("SPI free");
+    }
 
 exit_point:
     _mutex->unlock();
@@ -461,6 +475,13 @@ const char *SPIFBlockDevice::get_type() const
 /***************************************************/
 /*********** SPI Driver API Functions **************/
 /***************************************************/
+
+spif_bd_error SPIFBlockDevice::_spi_free()
+{
+    _spi.free();
+    return SPIF_BD_ERROR_OK;
+}
+
 spif_bd_error SPIFBlockDevice::_spi_set_frequency(int freq)
 {
     _spi.frequency(freq);
@@ -488,9 +509,10 @@ spif_bd_error SPIFBlockDevice::_spi_send_read_command(int read_inst, uint8_t *bu
     }
 
     // Read Data
-    for (bd_size_t i = 0; i < size; i++) {
-        buffer[i] = _spi.write(0);
-    }
+    // for (bd_size_t i = 0; i < size; i++) {
+    //     buffer[i] = _spi.write(0);
+    // }
+    _spi.write( NULL, 0, (char *)buffer, size );
 
     _spi.deselect();
 

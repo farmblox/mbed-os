@@ -162,6 +162,10 @@ public:
 
     virtual ~SPI();
 
+    /** Free the SPI object.
+     */
+    void free();
+
     /** Configure the data transmission format.
      *
      *  @param bits Number of bits per SPI frame (4 - 32, target dependent).

@@ -630,6 +630,15 @@ void LoRaWANStack::post_process_tx_with_reception()
 
 void LoRaWANStack::post_process_tx_no_reception()
 {
+    if (_loramac.get_mlme_confirmation()->req_type == MLME_LINK_CHECK
+            && _loramac.get_mcps_confirmation()->req_type != MCPS_CONFIRMED
+            && _link_check_requested) {
+        if (_callbacks.link_check_resp) {
+            const int ret = _queue->call(_callbacks.link_check_resp, 0, 0);
+            MBED_ASSERT(ret != 0);
+            (void) ret;
+        }
+    }
     if (_loramac.get_mcps_confirmation()->req_type == MCPS_CONFIRMED) {
         if (_loramac.continue_sending_process()) {
             _ctrl_flags &= ~TX_DONE_FLAG;
@@ -641,6 +650,15 @@ void LoRaWANStack::post_process_tx_no_reception()
                  _loramac.get_device_class() == CLASS_A ? "A" : "C");
         _ctrl_flags &= ~TX_DONE_FLAG;
         _ctrl_flags |= RETRY_EXHAUSTED_FLAG;
+        // handle confirmed flag link check
+        if (_loramac.get_mlme_confirmation()->req_type == MLME_LINK_CHECK
+                && _link_check_requested) {
+            if (_callbacks.link_check_resp) {
+                const int ret = _queue->call(_callbacks.link_check_resp, 0, 0);
+                MBED_ASSERT(ret != 0);
+                (void) ret;
+            }
+        }
     } else {
         _ctrl_flags |= TX_DONE_FLAG;
 
@@ -897,7 +915,7 @@ lorawan_status_t LoRaWANStack::handle_connect(bool is_otaa)
         //_lw_session.uplink_counter; //Get from NVM
 
         tr_debug("Initiating ABP");
-        tr_debug("Frame Counters. UpCnt=%lu, DownCnt=%lu",
+        tr_debug("Frame Counters. UpCnt=%u, DownCnt=%u",
                  _lw_session.uplink_counter, _lw_session.downlink_counter);
         _ctrl_flags &= ~USING_OTAA_FLAG;
     }
@@ -939,6 +957,14 @@ void LoRaWANStack::mlme_confirm_handler()
                 MBED_ASSERT(ret != 0);
                 (void) ret;
             }
+            // send_event_to_application(LINK_CHECK_SUCCESS);
+        } else {
+            if (_callbacks.link_check_resp) {
+                const int ret = _queue->call(_callbacks.link_check_resp, 0, 0);
+                MBED_ASSERT(ret != 0);
+                (void) ret;
+            }
+            // send_event_to_application(LINK_CHECK_FAILURE);
         }
     }
 

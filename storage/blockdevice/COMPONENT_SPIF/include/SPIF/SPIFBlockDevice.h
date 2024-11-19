@@ -216,7 +216,11 @@ public:
      */
     virtual const char *get_type() const;
 
+
 private:
+    spif_bd_error _spi_init();
+
+    spif_bd_error _spi_free();
     /****************************************/
     /* SFDP Detection and Parsing Functions */
     /****************************************/
@@ -268,6 +272,11 @@ private:
 private:
     // Master side hardware
     mbed::SPI _spi;
+    PinName _mosi;
+    PinName _miso;
+    PinName _sclk;
+    PinName _csel;
+    int _freq;
 
     // Mutex is used to protect Flash device for some SPI Driver commands that must be done sequentially with no other commands in between
     // e.g. (1)Set Write Enable, (2)Program, (3)Wait Memory Ready
