@@ -1503,6 +1503,18 @@
             "STM32F103xE"
         ]
     },
+    "MCU_STM32F103xD": {
+        "inherits": [
+            "MCU_STM32F1"
+        ],
+        "public": false,
+        "extra_labels_add": [
+            "STM32F103xD"
+        ],
+        "macros_add": [
+            "STM32F103xE"
+        ]
+    },
     "MCU_STM32F103xE": {
         "inherits": [
             "MCU_STM32F1"
@@ -1526,6 +1538,21 @@
             "ANALOGOUT",
             "SD",
             "PWM"
+        ]
+    },
+    "MCU_STM32F103xG": {
+        "inherits": [
+            "MCU_STM32F1"
+        ],
+        "public": false,
+        "extra_labels_add": [
+            "STM32F103xG"
+        ],
+        "macros_add": [
+            "STM32F103xG"
+        ],
+        "device_has_add": [
+            "MPU"
         ]
     },
     "MCU_STM32F2": {
@@ -2991,7 +3018,8 @@
             "MPU",
             "SERIAL_ASYNCH",
             "TRNG",
-            "CAN"
+            "CAN",
+            "CRC"
         ]
     },
     "MCU_STM32G431xB": {
@@ -3392,6 +3420,75 @@
         "mbed_ram_size": "0x80000",
         "macros_add": [
             "CORE_CM7"
+        ]
+    },
+    "NUCLEO_H745ZI_Q_CM7": {
+        "inherits": [
+            "MCU_STM32H745xI_CM7"
+        ],
+        "extra_labels_add": [ "NUCLEO_H745ZI_Q" ],
+        "supported_form_factors": [
+            "ARDUINO_UNO"
+        ],
+        "config": {
+            "d11_configuration": {
+                "help": "Value: PB_5 for the default board configuration, PA_7 in case of solder bridge update (SB33 on/ SB35 off)",
+                "value": "PB_5",
+                "macro_name": "STM32_D11_SPI_ETHERNET_PIN"
+            },
+            "hse_value": {
+                "help": "HSE default value is 25MHz in HAL",
+                "value": "8000000",
+                "macro_name": "HSE_VALUE"
+            },
+            "usb_speed": {
+                "help": "USE_USB_OTG_FS or USE_USB_OTG_HS or USE_USB_HS_IN_FS",
+                "value": "USE_USB_OTG_FS"
+            }
+        },
+        "device_has_add": [
+            "USBDEVICE"
+        ],
+        "overrides": {
+            "network-default-interface-type": "ETHERNET"
+        },
+        "device_name": "STM32H745ZITx"
+    },
+    "NUCLEO_H745ZI_Q_CM4": {
+        "inherits": [
+            "MCU_STM32H745xI_CM4"
+        ],
+        "extra_labels_add": [ "NUCLEO_H745ZI_Q" ],
+        "supported_form_factors": [
+            "ARDUINO_UNO"
+        ],
+        "config": {
+            "d11_configuration": {
+                "help": "Value: PB_5 for the default board configuration, PA_7 in case of solder bridge update (SB33 on/ SB35 off)",
+                "value": "PB_5",
+                "macro_name": "STM32_D11_SPI_ETHERNET_PIN"
+            },
+            "hse_value": {
+                "help": "HSE default value is 25MHz in HAL",
+                "value": "8000000",
+                "macro_name": "HSE_VALUE"
+            },
+            "usb_speed": {
+                "help": "USE_USB_OTG_FS or USE_USB_OTG_HS or USE_USB_HS_IN_FS",
+                "value": "USE_USB_OTG_FS"
+            }
+        },
+        "device_has_add": [
+            "USBDEVICE"
+        ],
+        "overrides": {
+            "network-default-interface-type": "ETHERNET"
+        },
+        "device_name": "STM32H745ZITx"
+    },
+    "NUCLEO_H745ZI_Q" : {
+        "inherits" : [
+            "NUCLEO_H745ZI_Q_CM7"
         ]
     },
     "MCU_STM32H747xI": {
@@ -3923,6 +4020,16 @@
         "device_name": "STM32L151CCTx",
         "detect_code": [
             "0350"
+        ]
+    },
+    "XDOT_MAX32670": {
+        "inherits": [
+            "MAX32670"
+        ],
+        "device_name": "MAX32670",
+        "bootloader_supported": true,
+        "detect_code": [
+            "0351"
         ]
     },
     "FF1705_L151CC": {
@@ -7082,6 +7189,9 @@
             "gpio-irq-debounce-sample-rate": {
                 "help": "Select GPIO IRQ debounce sample rate: GPIO_DBCTL_DBCLKSEL_1, GPIO_DBCTL_DBCLKSEL_2, GPIO_DBCTL_DBCLKSEL_4, ..., or GPIO_DBCTL_DBCLKSEL_32768",
                 "value": "GPIO_DBCTL_DBCLKSEL_16"
+            },
+            "eadc-extsmpt-list": {
+                "help": "For EADC, comma separated {pin, value} list to extend sampling time in EADC clocks on per-pin basis. Value must be in the range [0, 255]."
             }
         },
         "inherits": [
@@ -7196,6 +7306,9 @@
             "gpio-irq-debounce-sample-rate": {
                 "help": "Select GPIO IRQ debounce sample rate: GPIO_DBCTL_DBCLKSEL_1, GPIO_DBCTL_DBCLKSEL_2, GPIO_DBCTL_DBCLKSEL_4, ..., or GPIO_DBCTL_DBCLKSEL_32768",
                 "value": "GPIO_DBCTL_DBCLKSEL_16"
+            },
+            "eadc-extsmpt-list": {
+                "help": "For EADC, comma separated {pin, value} list to extend sampling time in EADC clocks on per-pin basis. Value must be in the range [0, 255]."
             }
         },
         "inherits": [
@@ -7317,6 +7430,9 @@
             "gpio-irq-debounce-sample-rate": {
                 "help": "Select GPIO IRQ debounce sample rate: GPIO_DBCLKSEL_1, GPIO_DBCLKSEL_2, GPIO_DBCLKSEL_4, ..., or GPIO_DBCLKSEL_32768",
                 "value": "GPIO_DBCLKSEL_16"
+            },
+            "adc-smplcnt-list": {
+                "help": "For ADC, comma separated {pin, value} list to extend sampling time in ADC clocks on per-pin basis. Value must be in the range [0, 15]."
             },
             "clock-pll": {
                 "help": "Choose clock source to clock PLL: NU_HXT_PLL or NU_HIRC_PLL",
@@ -7457,6 +7573,9 @@
                 "help": "Select GPIO IRQ debounce sample rate: GPIO_DBCTL_DBCLKSEL_1, GPIO_DBCTL_DBCLKSEL_2, GPIO_DBCTL_DBCLKSEL_4, ..., or GPIO_DBCTL_DBCLKSEL_32768",
                 "value": "GPIO_DBCTL_DBCLKSEL_16"
             },
+            "eadc-extsmpt-list": {
+                "help": "For EADC, comma separated {pin, value} list to extend sampling time in EADC clocks on per-pin basis. Value must be in the range [0, 255]."
+            },
             "exclude-uno-spi-from-fpga-ci-test-shield-test": {
                 "help": "Exclude UNO SPI pins (D8/D9/D10/D11/D12/D13) from FPGA CI Test Shield test for wiring to on-board SPI flash",
                 "options": [false, true],
@@ -7513,6 +7632,7 @@
             "MPU",
             "WATCHDOG",
             "RESET_REASON",
+            "CAN",
             "EMAC",
             "USBDEVICE"
         ],
@@ -7591,7 +7711,8 @@
         "is_disk_virtual": true,
         "supported_toolchains": [
             "ARM",
-            "GCC_ARM"
+            "GCC_ARM",
+            "IAR"
         ],
         "config": {
             "hxt-present": {
@@ -7647,6 +7768,9 @@
             "gpio-irq-debounce-sample-rate": {
                 "help": "Select GPIO IRQ debounce sample rate: GPIO_DBCTL_DBCLKSEL_1, GPIO_DBCTL_DBCLKSEL_2, GPIO_DBCTL_DBCLKSEL_4, ..., or GPIO_DBCTL_DBCLKSEL_32768",
                 "value": "GPIO_DBCTL_DBCLKSEL_16"
+            },
+            "eadc-extsmpt-list": {
+                "help": "For EADC, comma separated {pin, value} list to extend sampling time in EADC clocks on per-pin basis. Value must be in the range [0, 255]."
             },
             "usb-device-hsusbd": {
                 "help": "Select high-speed USB device or not",
@@ -7714,6 +7838,9 @@
             "gcc_arm": [
                 "std",
                 "small"
+            ],
+            "iar": [
+                "std"
             ]
         },
         "supported_application_profiles": [
@@ -8011,6 +8138,9 @@
             "gpio-irq-debounce-sample-rate": {
                 "help": "Select GPIO IRQ debounce sample rate: GPIO_DBCTL_DBCLKSEL_1, GPIO_DBCTL_DBCLKSEL_2, GPIO_DBCTL_DBCLKSEL_4, ..., or GPIO_DBCTL_DBCLKSEL_32768",
                 "value": "GPIO_DBCTL_DBCLKSEL_16"
+            },
+            "eadc-extsmpt-list": {
+                "help": "For EADC, comma separated {pin, value} list to extend sampling time in EADC clocks on per-pin basis. Value must be in the range [0, 255]."
             }
         },
         "overrides": {
@@ -8040,7 +8170,8 @@
             "SPI",
             "SPISLAVE",
             "SPI_ASYNCH",
-            "MPU"
+            "MPU",
+            "USBDEVICE"
         ],
         "release_versions": [
             "5"
@@ -8156,6 +8287,9 @@
             "gpio-irq-debounce-sample-rate": {
                 "help": "Select GPIO IRQ debounce sample rate: GPIO_DBCTL_DBCLKSEL_1, GPIO_DBCTL_DBCLKSEL_2, GPIO_DBCTL_DBCLKSEL_4, ..., or GPIO_DBCTL_DBCLKSEL_32768",
                 "value": "GPIO_DBCTL_DBCLKSEL_16"
+            },
+            "eadc-extsmpt-list": {
+                "help": "For EADC, comma separated {pin, value} list to extend sampling time in EADC clocks on per-pin basis. Value must be in the range [0, 255]."
             },
             "hxt-enable": {
                 "help": "Enable external high-speed crystal (HXT)",
@@ -9102,6 +9236,9 @@
             "gpio-irq-debounce-sample-rate": {
                 "help": "Select GPIO IRQ debounce sample rate: GPIO_DBCTL_DBCLKSEL_1, GPIO_DBCTL_DBCLKSEL_2, GPIO_DBCTL_DBCLKSEL_4, ..., or GPIO_DBCTL_DBCLKSEL_32768",
                 "value": "GPIO_DBCTL_DBCLKSEL_16"
+            },
+            "eadc-extsmpt-list": {
+                "help": "For EADC, comma separated {pin, value} list to extend sampling time in EADC clocks on per-pin basis. Value must be in the range [0, 255]."
             }
         },
         "inherits": [
@@ -9406,7 +9543,7 @@
             ]
         }
     },
-	"TMPM4NR": {
+    "TMPM4NR": {
         "inherits": [
             "Target"
         ],
@@ -9465,5 +9602,64 @@
             ]
         }
 
-    }    
+    },
+    "TMPM4GR": {
+        "inherits": [
+            "Target"
+        ],
+        "core": "Cortex-M4F",
+        "is_disk_virtual": true,
+        "extra_labels": [
+            "TOSHIBA"
+        ],
+        "macros": [
+            "__TMPM4GR__"
+        ],
+        "supported_toolchains": [
+            "GCC_ARM",
+            "ARM"
+	],
+        "device_has": [
+            "ANALOGIN",
+            "ANALOGOUT",
+            "INTERRUPTIN",
+            "PORTIN",
+            "PORTINOUT",
+            "PORTOUT",
+            "PWMOUT",
+            "RESET_REASON",
+            "SERIAL",
+            "SERIAL_FC",
+            "SPI",
+            "SPISLAVE",
+            "SPI_ASYNCH",
+            "I2C",
+            "I2CSLAVE",
+            "I2C_ASYNCH",
+            "RTC",
+            "STDIO_MESSAGES",
+            "FLASH",
+            "SLEEP",
+            "USTICKER",
+            "MPU"
+        ],
+        "device_name": "TMPM4GRF20FG",
+        "detect_code": [
+            "7021"
+        ],
+        "release_versions": [
+            "5"
+        ],
+        "bootloader_supported": true,
+         "supported_c_libs": {
+            "arm": [
+                "std",
+                "small"
+            ],
+            "gcc_arm": [
+                "std",
+                "small"
+            ]
+    	}
+    }
 }

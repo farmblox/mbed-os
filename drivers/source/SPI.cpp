@@ -148,12 +148,12 @@ void SPI::_do_construct()
 
 SPI::~SPI()
 {
-    lock();
+    SPI::lock();
     /* Make sure a stale pointer isn't left in peripheral's owner field */
     if (_peripheral->owner == this) {
         _peripheral->owner = nullptr;
     }
-    unlock();
+    SPI::unlock();
 }
 
 void SPI::free()
