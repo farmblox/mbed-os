@@ -46,6 +46,15 @@ MBED_WEAK void SetSysClock(void)
     */
     __HAL_RCC_PWR_CLK_ENABLE();
     __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+#if MBED_CONF_TARGET_LSE_AVAILABLE
+    // Enable LSE Oscillator to automatically calibrate the MSI clock
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE;
+    RCC_OscInitStruct.PLL.PLLState   = RCC_PLL_NONE; // No PLL update
+    RCC_OscInitStruct.LSEState       = RCC_LSE_ON;   // External 32.768 kHz clock on OSC32_IN/OSC32_OUT
+    MBED_ASSERT(HAL_RCC_OscConfig(&RCC_OscInitStruct) == HAL_OK);
+#endif
+
     /** Initializes the CPU, AHB and APB busses clocks
     */
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
@@ -54,6 +63,11 @@ MBED_WEAK void SetSysClock(void)
     RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_11;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
     MBED_ASSERT(HAL_RCC_OscConfig(&RCC_OscInitStruct) == HAL_OK);
+    
+#if MBED_CONF_TARGET_LSE_AVAILABLE
+    HAL_RCCEx_EnableMSIPLLMode();
+#endif
+    
     /** Configure the SYSCLKSource, HCLK, PCLK1 and PCLK2 clocks dividers
     */
     RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK3 | RCC_CLOCKTYPE_HCLK
@@ -66,4 +80,6 @@ MBED_WEAK void SetSysClock(void)
     RCC_ClkInitStruct.AHBCLK3Divider = RCC_SYSCLK_DIV1;
     MBED_ASSERT(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) == HAL_OK);
     /* Peripheral clock enable */
+
+    // HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_SYSCLK, RCC_MCODIV_1);
 }
