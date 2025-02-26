@@ -789,9 +789,10 @@ void STM32WL_LoRaRadio::write_to_register(uint16_t addr, uint8_t data)
 {
     HAL_StatusTypeDef error_value;
 
+    core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_WriteRegisters(&hsubghz, addr, (uint8_t *)&data, 1);
     MBED_ASSERT(error_value == HAL_OK);
-
+    core_util_critical_section_exit();
 }
 
 void STM32WL_LoRaRadio::write_to_register(uint16_t addr, uint8_t *data,
@@ -799,9 +800,10 @@ void STM32WL_LoRaRadio::write_to_register(uint16_t addr, uint8_t *data,
 {
     HAL_StatusTypeDef error_value;
 
+    core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_WriteRegisters(&hsubghz, addr, data, size);
     MBED_ASSERT(error_value == HAL_OK);
-
+    core_util_critical_section_exit();
 }
 
 uint8_t STM32WL_LoRaRadio::read_register(uint16_t addr)
@@ -809,8 +811,10 @@ uint8_t STM32WL_LoRaRadio::read_register(uint16_t addr)
     uint8_t data;
     HAL_StatusTypeDef error_value;
 
+    core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ReadRegisters(&hsubghz, addr, &data, 1);
     MBED_ASSERT(error_value == HAL_OK);
+    core_util_critical_section_exit();
 
     return data;
 
@@ -821,18 +825,20 @@ void STM32WL_LoRaRadio::read_register(uint16_t addr, uint8_t *buffer,
 {
     HAL_StatusTypeDef error_value;
 
+    core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ReadRegisters(&hsubghz, addr, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
-
+    core_util_critical_section_exit();
 }
 
 void STM32WL_LoRaRadio::write_fifo(uint8_t *buffer, uint8_t size)
 {
     HAL_StatusTypeDef error_value;
 
+    core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_WriteBuffer(&hsubghz, 0, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
-
+    core_util_critical_section_exit();
 }
 
 void STM32WL_LoRaRadio::set_modem(uint8_t modem)
@@ -858,8 +864,10 @@ void STM32WL_LoRaRadio::read_fifo(uint8_t *buffer, uint8_t size, uint8_t offset)
 {
     HAL_StatusTypeDef error_value;
 
+    core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ReadBuffer(&hsubghz, offset, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
+    core_util_critical_section_exit();
 }
 
 
