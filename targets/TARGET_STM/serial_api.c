@@ -628,6 +628,11 @@ HAL_StatusTypeDef init_uart(serial_t *obj)
     huart->TxXferSize        = 0;
     huart->RxXferCount       = 0;
     huart->RxXferSize        = 0;
+#if defined(UART_AUTO_BAUD_RATE)
+    huart->AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_AUTOBAUDRATE_INIT;
+    huart->AdvancedInit.AutoBaudRateEnable = UART_ADVFEATURE_AUTOBAUDRATE_ENABLE;
+    huart->AdvancedInit.AutoBaudRateMode = UART_ADVFEATURE_AUTOBAUDRATE_ONSTARTBIT;
+#endif
 #if defined(UART_ONE_BIT_SAMPLE_DISABLE) // F0/F3/F7/G0/H7/L0/L4/L5/WB
     huart->Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
 #endif
