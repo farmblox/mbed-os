@@ -616,7 +616,8 @@ void STM32WL_LoRaRadio::init_radio(radio_events_t *events)
     // this is a POR sequence
     cold_start_wakeup();
 
-    SUBGRF_SetTxParams(RFO_LP, 0, RADIO_RAMP_200_US);
+    // Not sure why this was here. Remove it for now
+    // SUBGRF_SetTxParams(RFO_LP, 0, RADIO_RAMP_200_US);
 
     sleep();
 }
@@ -789,8 +790,10 @@ void STM32WL_LoRaRadio::write_to_register(uint16_t addr, uint8_t data)
 {
     HAL_StatusTypeDef error_value;
 
+    core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_WriteRegisters(&hsubghz, addr, (uint8_t *)&data, 1);
     MBED_ASSERT(error_value == HAL_OK);
+    core_util_critical_section_exit();
 
 }
 
@@ -799,8 +802,10 @@ void STM32WL_LoRaRadio::write_to_register(uint16_t addr, uint8_t *data,
 {
     HAL_StatusTypeDef error_value;
 
+    core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_WriteRegisters(&hsubghz, addr, data, size);
     MBED_ASSERT(error_value == HAL_OK);
+    core_util_critical_section_exit();
 
 }
 
@@ -821,8 +826,10 @@ void STM32WL_LoRaRadio::read_register(uint16_t addr, uint8_t *buffer,
 {
     HAL_StatusTypeDef error_value;
 
+    core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ReadRegisters(&hsubghz, addr, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
+    core_util_critical_section_exit();
 
 }
 
@@ -830,8 +837,10 @@ void STM32WL_LoRaRadio::write_fifo(uint8_t *buffer, uint8_t size)
 {
     HAL_StatusTypeDef error_value;
 
+    core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_WriteBuffer(&hsubghz, 0, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
+    core_util_critical_section_exit();
 
 }
 
@@ -858,8 +867,10 @@ void STM32WL_LoRaRadio::read_fifo(uint8_t *buffer, uint8_t size, uint8_t offset)
 {
     HAL_StatusTypeDef error_value;
 
+    core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ReadBuffer(&hsubghz, offset, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
+    core_util_critical_section_exit();
 }
 
 
@@ -1148,13 +1159,13 @@ void STM32WL_LoRaRadio::send(uint8_t *buffer, uint8_t size)
     // 15.625 us. Check data-sheet 13.1.4 SetTX() section.
     uint32_t timeout_scalled = ceil((_tx_timeout * 1000) / 15.625);
 
+    _operating_mode = MODE_TX;
+    
     buf[0] = (uint8_t)((timeout_scalled >> 16) & 0xFF);
     buf[1] = (uint8_t)((timeout_scalled >> 8) & 0xFF);
     buf[2] = (uint8_t)(timeout_scalled & 0xFF);
 
     write_opmode_command(RADIO_SET_TX, buf, 3);
-
-    _operating_mode = MODE_TX;
 }
 
 
@@ -1202,13 +1213,14 @@ void STM32WL_LoRaRadio::receive(void)
 #endif
 
     uint8_t buf[3];
+    
+    _operating_mode = MODE_RX;
+
     buf[0] = (uint8_t)((_rx_timeout >> 16) & 0xFF);
     buf[1] = (uint8_t)((_rx_timeout >> 8) & 0xFF);
     buf[2] = (uint8_t)(_rx_timeout & 0xFF);
 
     write_opmode_command(RADIO_SET_RX, buf, 3);
-
-    _operating_mode = MODE_RX;
 }
 
 // check data-sheet 13.1.14.1 PA optimal settings
@@ -1220,7 +1232,7 @@ void STM32WL_LoRaRadio::set_tx_power(int8_t power)
 
     buf[0] = power;
 
-    if (crystal_select == 0) {
+    if (crystal_select == 1) {
         // TCXO
         buf[1] = RADIO_RAMP_200_US;
     } else {
