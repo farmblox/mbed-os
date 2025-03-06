@@ -616,8 +616,7 @@ void STM32WL_LoRaRadio::init_radio(radio_events_t *events)
     // this is a POR sequence
     cold_start_wakeup();
 
-    // Not sure why this was here. Remove it for now
-    // SUBGRF_SetTxParams(RFO_LP, 0, RADIO_RAMP_200_US);
+    SUBGRF_SetTxParams(RFO_HP, 0, RADIO_RAMP_200_US);
 
     sleep();
 }
@@ -1158,7 +1157,9 @@ void STM32WL_LoRaRadio::send(uint8_t *buffer, uint8_t size)
     // _tx_timeout in ms should be converted to us and then divided by
     // 15.625 us. Check data-sheet 13.1.4 SetTX() section.
     uint32_t timeout_scalled = ceil((_tx_timeout * 1000) / 15.625);
-
+    
+    // add critical section to enforce atomic operation
+    core_util_critical_section_enter();
     _operating_mode = MODE_TX;
     
     buf[0] = (uint8_t)((timeout_scalled >> 16) & 0xFF);
@@ -1166,6 +1167,7 @@ void STM32WL_LoRaRadio::send(uint8_t *buffer, uint8_t size)
     buf[2] = (uint8_t)(timeout_scalled & 0xFF);
 
     write_opmode_command(RADIO_SET_TX, buf, 3);
+    core_util_critical_section_exit();
 }
 
 
@@ -1214,6 +1216,8 @@ void STM32WL_LoRaRadio::receive(void)
 
     uint8_t buf[3];
     
+    // add critical section to enforce atomic operation
+    core_util_critical_section_enter();
     _operating_mode = MODE_RX;
 
     buf[0] = (uint8_t)((_rx_timeout >> 16) & 0xFF);
@@ -1221,6 +1225,7 @@ void STM32WL_LoRaRadio::receive(void)
     buf[2] = (uint8_t)(_rx_timeout & 0xFF);
 
     write_opmode_command(RADIO_SET_RX, buf, 3);
+    core_util_critical_section_exit();
 }
 
 // check data-sheet 13.1.14.1 PA optimal settings
