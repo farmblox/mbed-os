@@ -1165,9 +1165,9 @@ void STM32WL_LoRaRadio::send(uint8_t *buffer, uint8_t size)
     buf[0] = (uint8_t)((timeout_scalled >> 16) & 0xFF);
     buf[1] = (uint8_t)((timeout_scalled >> 8) & 0xFF);
     buf[2] = (uint8_t)(timeout_scalled & 0xFF);
+    core_util_critical_section_exit();
 
     write_opmode_command(RADIO_SET_TX, buf, 3);
-    core_util_critical_section_exit();
 }
 
 
@@ -1223,9 +1223,9 @@ void STM32WL_LoRaRadio::receive(void)
     buf[0] = (uint8_t)((_rx_timeout >> 16) & 0xFF);
     buf[1] = (uint8_t)((_rx_timeout >> 8) & 0xFF);
     buf[2] = (uint8_t)(_rx_timeout & 0xFF);
+    core_util_critical_section_exit();
 
     write_opmode_command(RADIO_SET_RX, buf, 3);
-    core_util_critical_section_exit();
 }
 
 // check data-sheet 13.1.14.1 PA optimal settings
