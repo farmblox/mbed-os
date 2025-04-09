@@ -415,6 +415,20 @@ public:
     uint8_t get_QOS_level(void);
 
     /**
+     * @brief   Queries the LoRaMAC the maximum possible FRMPayload size to send.
+     *          The LoRaMAC takes the scheduled MAC commands into account and returns
+     *          corresponding value.
+     *
+     * @param   fopts_len     [in]    Number of mac commands in the queue pending.
+     *
+     * @return  Size of the biggest packet that can be sent.
+     *          Please note that if the size of the MAC commands in the queue do
+     *          not fit into the payload size on the related datarate, the LoRaMAC will
+     *          omit the MAC commands.
+     */
+    uint8_t get_max_possible_tx_size(uint8_t fopts_len);
+
+    /**
      *Indicates level of QOS used for the previous outgoing message
      */
     uint8_t get_prev_QOS_level(void);
@@ -453,20 +467,6 @@ public:
     }
 
 private:
-    /**
-     * @brief   Queries the LoRaMAC the maximum possible FRMPayload size to send.
-     *          The LoRaMAC takes the scheduled MAC commands into account and returns
-     *          corresponding value.
-     *
-     * @param   fopts_len     [in]    Number of mac commands in the queue pending.
-     *
-     * @return  Size of the biggest packet that can be sent.
-     *          Please note that if the size of the MAC commands in the queue do
-     *          not fit into the payload size on the related datarate, the LoRaMAC will
-     *          omit the MAC commands.
-     */
-    uint8_t get_max_possible_tx_size(uint8_t fopts_len);
-
     /**
      * @brief set_nwk_joined This is used for ABP mode for which real joining does not happen
      * @param joined True if device has joined in network, false otherwise

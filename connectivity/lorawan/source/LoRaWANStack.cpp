@@ -505,6 +505,17 @@ lorawan_status_t LoRaWANStack::acquire_backoff_metadata(int &backoff)
     return LORAWAN_STATUS_METADATA_NOT_AVAILABLE;
 }
 
+lorawan_status_t LoRaWANStack::acquire_max_payload_size(uint8_t &size)
+{
+    if (DEVICE_STATE_NOT_INITIALIZED == _device_current_state) {
+        return LORAWAN_STATUS_NOT_INITIALIZED;
+    }
+
+    // use the maximum possible size of FOPTS (15) as we don't know what the next command will be
+    size = _loramac.get_max_possible_tx_size(15);
+    return LORAWAN_STATUS_OK;
+}
+
 /*****************************************************************************
  * Interrupt handlers                                                        *
  ****************************************************************************/

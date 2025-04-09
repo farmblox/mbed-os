@@ -373,6 +373,16 @@ public:
      *                       LORAWAN_STATUS_METADATA_NOT_AVAILABLE otherwise
      */
     lorawan_status_t acquire_backoff_metadata(int &backoff);
+    
+    /** Get max payload size for the current data rate.
+     * 
+     * @param size           A reference to the inbound integer which will be
+     *                       filled with the maximum payload size.
+     * 
+     * @return              LORAWAN_STATUS_OK if successful,
+     *                      LORAWAN_STATUS_NOT_INITIALIZED if the stack is not initialized
+     */
+    lorawan_status_t acquire_max_payload_size(uint8_t &size);
 
     /** Stops sending
      *

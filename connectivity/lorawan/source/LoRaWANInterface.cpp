@@ -161,6 +161,12 @@ lorawan_status_t LoRaWANInterface::get_backoff_metadata(int &backoff)
     return _lw_stack.acquire_backoff_metadata(backoff);
 }
 
+lorawan_status_t LoRaWANInterface::get_max_payload_size(uint8_t &size)
+{
+    Lock lock(*this);
+    return _lw_stack.acquire_max_payload_size(size);
+}
+
 int16_t LoRaWANInterface::receive(uint8_t port, uint8_t *data, uint16_t length, int flags)
 {
     Lock lock(*this);
