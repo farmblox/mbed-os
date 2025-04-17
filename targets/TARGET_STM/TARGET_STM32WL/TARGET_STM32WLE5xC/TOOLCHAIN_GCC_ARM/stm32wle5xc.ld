@@ -105,8 +105,8 @@ SECTIONS
     } > FLASH
 
     __exidx_start = .;
-    .ARM.exidx :
-    {
+        .ARM.exidx :
+        {
         *(.ARM.exidx* .gnu.linkonce.armexidx.*)
     } > FLASH
     __exidx_end = .;
