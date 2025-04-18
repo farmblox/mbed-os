@@ -419,7 +419,7 @@ public:
      * 
      * @return uint8_t 
      */
-    uint8_t get_fopts_len(void)
+    uint8_t get_fopts_len(void);
 
     /**
      * @brief   Queries the LoRaMAC the maximum possible FRMPayload size to send.
