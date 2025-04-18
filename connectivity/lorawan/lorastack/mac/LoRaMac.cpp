@@ -1871,6 +1871,11 @@ void LoRaMac::disconnect()
     reset_mcps_indication();
 }
 
+uint8_t LoRaMac::get_fopts_len(void)
+{
+    return _mac_commands.get_mac_cmd_length() + _mac_commands.get_repeat_commands_length();
+}
+
 uint8_t LoRaMac::get_max_possible_tx_size(uint8_t fopts_len)
 {
     uint8_t max_possible_payload_size = 0;

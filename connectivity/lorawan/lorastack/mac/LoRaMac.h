@@ -415,6 +415,13 @@ public:
     uint8_t get_QOS_level(void);
 
     /**
+     * @brief Get the fops len object
+     * 
+     * @return uint8_t 
+     */
+    uint8_t get_fopts_len(void)
+
+    /**
      * @brief   Queries the LoRaMAC the maximum possible FRMPayload size to send.
      *          The LoRaMAC takes the scheduled MAC commands into account and returns
      *          corresponding value.

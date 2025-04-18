@@ -511,8 +511,8 @@ lorawan_status_t LoRaWANStack::acquire_max_payload_size(uint8_t &size)
         return LORAWAN_STATUS_NOT_INITIALIZED;
     }
 
-    // use the maximum possible size of FOPTS (15) as we don't know what the next command will be
-    size = _loramac.get_max_possible_tx_size(15);
+    uint8_t fopts_len = _loramac.get_fopts_len();
+    size = _loramac.get_max_possible_tx_size(fopts_len);
     return LORAWAN_STATUS_OK;
 }
 
