@@ -39,6 +39,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include "Timer.h"
 #include "STM32WL_LoRaRadio.h"
 #include "mbed_wait_api.h"
+#include "mbed_power_mgmt.h"
 
 #ifndef DEBUG_STDIO
 #define DEBUG_STDIO 0
@@ -768,54 +769,56 @@ uint32_t STM32WL_LoRaRadio::random(void)
 void STM32WL_LoRaRadio::write_opmode_command(uint8_t cmd, uint8_t *buffer, uint16_t size)
 {
     HAL_StatusTypeDef error_value;
-
+    sleep_manager_lock_deep_sleep();
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ExecSetCmd(&hsubghz, (SUBGHZ_RadioSetCmd_t)cmd, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
     core_util_critical_section_exit();
+    sleep_manager_unlock_deep_sleep();
 }
 
 void STM32WL_LoRaRadio::read_opmode_command(uint8_t cmd, uint8_t *buffer, uint16_t size)
 {
     HAL_StatusTypeDef error_value;
-
+    sleep_manager_lock_deep_sleep();
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ExecGetCmd(&hsubghz, (SUBGHZ_RadioGetCmd_t)cmd, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
     core_util_critical_section_exit();
+    sleep_manager_unlock_deep_sleep();
 }
 
 void STM32WL_LoRaRadio::write_to_register(uint16_t addr, uint8_t data)
 {
     HAL_StatusTypeDef error_value;
-
+    sleep_manager_lock_deep_sleep();
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_WriteRegisters(&hsubghz, addr, (uint8_t *)&data, 1);
     MBED_ASSERT(error_value == HAL_OK);
     core_util_critical_section_exit();
-
+    sleep_manager_unlock_deep_sleep();
 }
 
 void STM32WL_LoRaRadio::write_to_register(uint16_t addr, uint8_t *data,
                                           uint8_t size)
 {
     HAL_StatusTypeDef error_value;
-
+    sleep_manager_lock_deep_sleep();
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_WriteRegisters(&hsubghz, addr, data, size);
     MBED_ASSERT(error_value == HAL_OK);
     core_util_critical_section_exit();
-
+    sleep_manager_unlock_deep_sleep();
 }
 
 uint8_t STM32WL_LoRaRadio::read_register(uint16_t addr)
 {
     uint8_t data;
     HAL_StatusTypeDef error_value;
-
+    sleep_manager_lock_deep_sleep();
     error_value = HAL_SUBGHZ_ReadRegisters(&hsubghz, addr, &data, 1);
     MBED_ASSERT(error_value == HAL_OK);
-
+    sleep_manager_unlock_deep_sleep();
     return data;
 
 }
@@ -824,23 +827,23 @@ void STM32WL_LoRaRadio::read_register(uint16_t addr, uint8_t *buffer,
                                       uint8_t size)
 {
     HAL_StatusTypeDef error_value;
-
+    sleep_manager_lock_deep_sleep();
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ReadRegisters(&hsubghz, addr, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
     core_util_critical_section_exit();
-
+    sleep_manager_unlock_deep_sleep();
 }
 
 void STM32WL_LoRaRadio::write_fifo(uint8_t *buffer, uint8_t size)
 {
     HAL_StatusTypeDef error_value;
-
+    sleep_manager_lock_deep_sleep();
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_WriteBuffer(&hsubghz, 0, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
     core_util_critical_section_exit();
-
+    sleep_manager_unlock_deep_sleep();
 }
 
 void STM32WL_LoRaRadio::set_modem(uint8_t modem)
@@ -865,11 +868,12 @@ uint8_t STM32WL_LoRaRadio::get_modem()
 void STM32WL_LoRaRadio::read_fifo(uint8_t *buffer, uint8_t size, uint8_t offset)
 {
     HAL_StatusTypeDef error_value;
-
+    sleep_manager_lock_deep_sleep();
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ReadBuffer(&hsubghz, offset, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
     core_util_critical_section_exit();
+    sleep_manager_unlock_deep_sleep();
 }
 
 
