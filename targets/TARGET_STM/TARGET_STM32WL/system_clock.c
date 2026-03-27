@@ -41,6 +41,8 @@ MBED_WEAK void SetSysClock(void)
 {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    (void)RCC_OscInitStruct;
+    (void)RCC_ClkInitStruct;
 
     /** Configure the main internal regulator output voltage
     */

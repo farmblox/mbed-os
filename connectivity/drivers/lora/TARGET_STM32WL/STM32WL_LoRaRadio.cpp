@@ -213,13 +213,13 @@ bool STM32WL_LoRaRadio::perform_carrier_sense(radio_modems_t modem,
 
     sleep_duration = RadioGetWakeupTime();
     // hold on a bit, radio turn-around time
-    rtos::ThisThread::sleep_for(sleep_duration);
+    rtos::ThisThread::sleep_for(milliseconds(sleep_duration));
 
     Timer elapsed_time;
     elapsed_time.start();
 
     // Perform carrier sense for maxCarrierSenseTime
-    while (elapsed_time.read_ms() < (int) max_carrier_sense_time) {
+    while (duration_cast<milliseconds>(elapsed_time.elapsed_time()).count() < (int) max_carrier_sense_time) {
         rssi = get_rssi();
 
         if (rssi > rssi_threshold) {
@@ -599,6 +599,7 @@ void STM32WL_LoRaRadio::init_radio(radio_events_t *events)
 {
     HAL_StatusTypeDef error_value;
     uint32_t vector = 0;
+    (void)vector;
     DEBUG_PRINTF("STM32WL_LoRaRadio::init_radio\n");
     _radio_events = events;
 
@@ -613,6 +614,7 @@ void STM32WL_LoRaRadio::init_radio(radio_events_t *events)
     error_value = HAL_SUBGHZ_Init(&hsubghz);
 
     MBED_ASSERT(error_value == HAL_OK);
+    (void)error_value;
 
     // this is a POR sequence
     cold_start_wakeup();
@@ -626,6 +628,7 @@ void STM32WL_LoRaRadio::init_radio(radio_events_t *events)
 void STM32WL_LoRaRadio::cold_start_wakeup()
 {
     GPIO_InitTypeDef  gpio_init_structure = {0};
+    (void)gpio_init_structure;
 
     write_opmode_command(RADIO_SET_REGULATORMODE, &regulator_mode, 1);
     set_buffer_base_addr(0x00, 0x00);
@@ -773,6 +776,7 @@ void STM32WL_LoRaRadio::write_opmode_command(uint8_t cmd, uint8_t *buffer, uint1
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ExecSetCmd(&hsubghz, (SUBGHZ_RadioSetCmd_t)cmd, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
+    (void)error_value;
     core_util_critical_section_exit();
     sleep_manager_unlock_deep_sleep();
 }
@@ -784,6 +788,7 @@ void STM32WL_LoRaRadio::read_opmode_command(uint8_t cmd, uint8_t *buffer, uint16
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ExecGetCmd(&hsubghz, (SUBGHZ_RadioGetCmd_t)cmd, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
+    (void)error_value;
     core_util_critical_section_exit();
     sleep_manager_unlock_deep_sleep();
 }
@@ -795,6 +800,7 @@ void STM32WL_LoRaRadio::write_to_register(uint16_t addr, uint8_t data)
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_WriteRegisters(&hsubghz, addr, (uint8_t *)&data, 1);
     MBED_ASSERT(error_value == HAL_OK);
+    (void)error_value;
     core_util_critical_section_exit();
     sleep_manager_unlock_deep_sleep();
 }
@@ -807,6 +813,7 @@ void STM32WL_LoRaRadio::write_to_register(uint16_t addr, uint8_t *data,
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_WriteRegisters(&hsubghz, addr, data, size);
     MBED_ASSERT(error_value == HAL_OK);
+    (void)error_value;
     core_util_critical_section_exit();
     sleep_manager_unlock_deep_sleep();
 }
@@ -818,6 +825,7 @@ uint8_t STM32WL_LoRaRadio::read_register(uint16_t addr)
     sleep_manager_lock_deep_sleep();
     error_value = HAL_SUBGHZ_ReadRegisters(&hsubghz, addr, &data, 1);
     MBED_ASSERT(error_value == HAL_OK);
+    (void)error_value;
     sleep_manager_unlock_deep_sleep();
     return data;
 
@@ -831,6 +839,7 @@ void STM32WL_LoRaRadio::read_register(uint16_t addr, uint8_t *buffer,
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ReadRegisters(&hsubghz, addr, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
+    (void)error_value;
     core_util_critical_section_exit();
     sleep_manager_unlock_deep_sleep();
 }
@@ -842,6 +851,7 @@ void STM32WL_LoRaRadio::write_fifo(uint8_t *buffer, uint8_t size)
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_WriteBuffer(&hsubghz, 0, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
+    (void)error_value;
     core_util_critical_section_exit();
     sleep_manager_unlock_deep_sleep();
 }
@@ -872,6 +882,7 @@ void STM32WL_LoRaRadio::read_fifo(uint8_t *buffer, uint8_t size, uint8_t offset)
     core_util_critical_section_enter();
     error_value = HAL_SUBGHZ_ReadBuffer(&hsubghz, offset, buffer, size);
     MBED_ASSERT(error_value == HAL_OK);
+    (void)error_value;
     core_util_critical_section_exit();
     sleep_manager_unlock_deep_sleep();
 }
