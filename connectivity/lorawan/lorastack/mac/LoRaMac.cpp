@@ -1337,8 +1337,9 @@ int16_t LoRaMac::prepare_ongoing_tx(const uint8_t port,
 
     max_possible_size = get_max_possible_tx_size(fopts_len);
 
-    // max_possible_size is uint8_t (max 255) which equals MBED_CONF_LORA_TX_MAX_SIZE
-    (void)MBED_CONF_LORA_TX_MAX_SIZE;
+    if (max_possible_size > MBED_CONF_LORA_TX_MAX_SIZE) {
+        max_possible_size = MBED_CONF_LORA_TX_MAX_SIZE;
+    }
 
     if (max_possible_size < length) {
         tr_info("Cannot transmit %d bytes. Possible TX Size is %d bytes",

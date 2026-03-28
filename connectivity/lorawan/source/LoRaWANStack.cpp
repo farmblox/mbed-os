@@ -769,7 +769,7 @@ void LoRaWANStack::process_reception_timeout(bool is_timeout)
 
     if (slot == RX_SLOT_WIN_2 && !_loramac.nwk_joined()) {
         const int ret = _queue->call_in(
-                            std::chrono::milliseconds(500), this, &LoRaWANStack::state_controller, DEVICE_STATE_JOINING);
+                            500, this, &LoRaWANStack::state_controller, DEVICE_STATE_JOINING);
         MBED_ASSERT(ret != 0);
         (void)ret;
         return;
@@ -926,8 +926,8 @@ lorawan_status_t LoRaWANStack::handle_connect(bool is_otaa)
         //_lw_session.uplink_counter; //Get from NVM
 
         tr_debug("Initiating ABP");
-        tr_debug("Frame Counters. UpCnt=%lu, DownCnt=%lu",
-                 (unsigned long)_lw_session.uplink_counter, (unsigned long)_lw_session.downlink_counter);
+        tr_debug("Frame Counters. UpCnt=%u, DownCnt=%u",
+                 _lw_session.uplink_counter, _lw_session.downlink_counter);
         _ctrl_flags &= ~USING_OTAA_FLAG;
     }
 

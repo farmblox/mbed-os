@@ -1939,7 +1939,7 @@ extern "C" MBED_WEAK long int _scanf_mbtowc(
     return 0;
 }
 
-__attribute__((unused)) static void validate_errno_values(int value)
+static  void validate_errno_values(int value)
 {
 
     switch (value) {

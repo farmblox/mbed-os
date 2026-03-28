@@ -463,13 +463,13 @@ public:
      */
     lorawan_status_t get_session(loramac_protocol_params *params) 
     {
-        *params = _params;
+        memcpy(params, &_params, sizeof(loramac_protocol_params));
         return LORAWAN_STATUS_OK;
     }
 
     lorawan_status_t set_session(loramac_protocol_params *params) 
     {
-        _params = *params;
+        memcpy(&_params, params, sizeof(loramac_protocol_params));
         return LORAWAN_STATUS_OK;
     }
 

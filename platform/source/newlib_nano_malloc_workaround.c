@@ -222,10 +222,10 @@ void * nano_malloc(RARG malloc_size_t s)
 
     while (r)
     {
-        int rem = r->size - (long)alloc_size;
+        int rem = r->size - alloc_size;
         if (rem >= 0)
         {
-            if (rem >= (int)MALLOC_MINCHUNK)
+            if (rem >= MALLOC_MINCHUNK)
             {
                 if (p == r)
                 {

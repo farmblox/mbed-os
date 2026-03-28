@@ -1481,10 +1481,11 @@ int TDBStore::check_erase_before_write(uint8_t area, uint32_t offset, uint32_t s
     // In order to save init time, we don't check that the entire area is erased.
     // Instead, whenever reaching an erase unit start erase it.
     bool erase = false;
-    uint32_t start_offset = 0;
-    uint32_t end_offset = 0;
+    uint32_t start_offset;
+    uint32_t end_offset;
     while (size) {
         uint32_t dist, offset_from_start;
+        int ret;
         offset_in_erase_unit(area, offset, offset_from_start, dist);
         uint32_t chunk = std::min(size, dist);
 

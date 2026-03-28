@@ -119,7 +119,7 @@ static inline bool mbed_error_is_hw_fault(mbed_error_status_t error_status)
             error_status == MBED_ERROR_HARDFAULT_EXCEPTION);
 }
 
-__attribute__((unused)) static bool mbed_error_is_handler(const mbed_error_ctx *ctx)
+static bool mbed_error_is_handler(const mbed_error_ctx *ctx)
 {
     bool is_handler = false;
     if (ctx && mbed_error_is_hw_fault(ctx->error_status)) {
