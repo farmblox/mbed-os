@@ -481,9 +481,12 @@ void LoRaMac::handle_data_frame(const uint8_t *const payload,
     app_payload_start_index = 8 + fctrl.bits.fopts_len;
 
     //perform MIC check
+    tr_debug("MIC check: addr=0x%lx, dl_counter=%lu, stored_dl=%lu",
+             (unsigned long)address, (unsigned long)downlink_counter,
+             (unsigned long)_params.dl_frame_counter);
     if (!message_integrity_check(payload, size, &ptr_pos, address,
                                  &downlink_counter, nwk_skey)) {
-        tr_error("MIC failed");
+        tr_error("MIC failed (dl_counter=%lu)", (unsigned long)downlink_counter);
         _mcps_indication.status = LORAMAC_EVENT_INFO_STATUS_MIC_FAIL;
         _mcps_indication.pending = false;
         return;
