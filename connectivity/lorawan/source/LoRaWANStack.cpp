@@ -187,16 +187,6 @@ lorawan_status_t LoRaWANStack::connect(const lorawan_connect_t &connect)
 
     bool is_otaa = (connect.connect_type == LORAWAN_CONNECTION_OTAA);
 
-    // If a session was already restored via set_session(), skip the join
-    // entirely — prepare_join() would reset the restored MAC parameters.
-    if (is_otaa) {
-        loramac_protocol_params params;
-        _loramac.get_session(&params);
-        if (params.is_nwk_joined) {
-            return handle_connect(is_otaa);
-        }
-    }
-
     lorawan_status_t status = _loramac.prepare_join(&connect, is_otaa);
 
     if (LORAWAN_STATUS_OK != status) {
@@ -917,30 +907,11 @@ lorawan_status_t LoRaWANStack::handle_connect(bool is_otaa)
     _ctrl_flags |= CONN_IN_PROGRESS_FLAG;
 
     if (is_otaa) {
-        // If a session was restored via set_session() with is_nwk_joined=true,
-        // skip the OTAA join and go straight to connected state.
-        loramac_protocol_params params;
-        _loramac.get_session(&params);
-        if (params.is_nwk_joined) {
-            _lw_session.active = true;
-            _lw_session.connect_type = LORAWAN_CONNECTION_OTAA;
-            _lw_session.uplink_counter = params.ul_frame_counter;
-            _lw_session.downlink_counter = params.dl_frame_counter;
-            _device_current_state = DEVICE_STATE_IDLE;
-            _ctrl_flags |= USING_OTAA_FLAG;
-            _ctrl_flags &= ~CONN_IN_PROGRESS_FLAG;
-            _ctrl_flags |= CONNECTED_FLAG;
-
-            tr_debug("Session restored, skipping OTAA join (UL=%lu, DL=%lu)",
-                     (unsigned long)_lw_session.uplink_counter,
-                     (unsigned long)_lw_session.downlink_counter);
-
-            send_event_to_application(CONNECTED);
-            return LORAWAN_STATUS_ALREADY_CONNECTED;
-        }
-
         tr_debug("Initiating OTAA");
 
+        // In 1.0.2 spec, counters are always set to zero for new connection.
+        // This section is common for both normal and
+        // connection restore at this moment. Will change in future with 1.1 support.
         _lw_session.downlink_counter = 0;
         _lw_session.uplink_counter = 0;
         _ctrl_flags |= USING_OTAA_FLAG;
