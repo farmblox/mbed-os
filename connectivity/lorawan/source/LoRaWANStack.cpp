@@ -187,6 +187,10 @@ lorawan_status_t LoRaWANStack::connect(const lorawan_connect_t &connect)
 
     bool is_otaa = (connect.connect_type == LORAWAN_CONNECTION_OTAA);
 
+    if (is_otaa && _loramac.nwk_joined()) {
+        return handle_connect(is_otaa);
+    }
+
     lorawan_status_t status = _loramac.prepare_join(&connect, is_otaa);
 
     if (LORAWAN_STATUS_OK != status) {
@@ -909,9 +913,20 @@ lorawan_status_t LoRaWANStack::handle_connect(bool is_otaa)
     if (is_otaa) {
         tr_debug("Initiating OTAA");
 
-        // In 1.0.2 spec, counters are always set to zero for new connection.
-        // This section is common for both normal and
-        // connection restore at this moment. Will change in future with 1.1 support.
+        if (_loramac.nwk_joined()) {
+            _lw_session.active = true;
+            _lw_session.connect_type = LORAWAN_CONNECTION_OTAA;
+            _device_current_state = DEVICE_STATE_IDLE;
+            _ctrl_flags |= USING_OTAA_FLAG;
+            _ctrl_flags &= ~CONN_IN_PROGRESS_FLAG;
+            _ctrl_flags |= CONNECTED_FLAG;
+            tr_debug("Session restored, skipping OTAA join");
+            send_event_to_application(CONNECTED);
+            return LORAWAN_STATUS_ALREADY_CONNECTED;
+        }
+
+        tr_debug("Initiating OTAA");
+
         _lw_session.downlink_counter = 0;
         _lw_session.uplink_counter = 0;
         _ctrl_flags |= USING_OTAA_FLAG;

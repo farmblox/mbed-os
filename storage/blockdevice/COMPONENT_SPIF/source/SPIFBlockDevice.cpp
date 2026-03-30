@@ -229,10 +229,15 @@ int SPIFBlockDevice::deinit()
     }
     _is_initialized = false;
 
+#if !defined(TARGET_STM32WL)
+    // On STM32WL, _spi_free() resets SPI1 via RCC which permanently breaks
+    // the SubGHz radio's STOP2 deep sleep wake. Skip it — the SPI peripheral
+    // state is preserved through STOP2 and will be re-initialized on next init().
     status = _spi_free();
     if (status != SPIF_BD_ERROR_OK)  {
         tr_error("SPI free");
     }
+#endif // !TARGET_STM32WL
 
 exit_point:
     _mutex->unlock();
