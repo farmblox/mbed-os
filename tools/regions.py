@@ -23,7 +23,7 @@ import struct
 import zlib
 from time import time
 from os.path import splitext, exists, dirname
-from os import makedirs
+from os import makedirs, environ
 from .config import Config
 from .utils import (
     ToolException,
@@ -73,7 +73,8 @@ def _fill_header(region_list, current_region):
         elif type == "timestamp":
             fmt = {"32le": "<L", "64le": "<Q",
                    "32be": ">L", "64be": ">Q"}[subtype]
-            header.puts(start, struct.pack(fmt, int(time())))
+            ts = int(environ.get("MBED_BUILD_TIMESTAMP", int(time())))
+            header.puts(start, struct.pack(fmt, ts))
         elif type == "size":
             fmt = {"32le": "<L", "64le": "<Q",
                    "32be": ">L", "64be": ">Q"}[subtype]
