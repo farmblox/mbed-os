@@ -24,6 +24,7 @@
 #include "mbed_error.h"
 #include "mbed_assert.h"
 #include "mbed_wait_api.h"
+#include "Watchdog.h"
 #include "MbedCRC.h"
 #include "FlashIAP.h"
 
@@ -907,6 +908,7 @@ int TDBStore::garbage_collection()
 
     // Go over ram table and copy all entries to opposite area
     for (ind = 0; ind < _num_keys; ind++) {
+        Watchdog::get_instance().kick();
         uint32_t from_offset = ram_table[ind].bd_offset;
         ret = copy_record(_active_area, from_offset, to_offset, to_next_offset);
         if (ret) {
@@ -1180,6 +1182,7 @@ int TDBStore::reset_area(uint8_t area)
     bool copy_reserved_data = do_reserved_data_get(buf, sizeof(buf), 0, buf + RESERVED_AREA_SIZE) == MBED_SUCCESS;
 
     // Erase reserved area and master record
+    Watchdog::get_instance().kick();
     ret = check_erase_before_write(area, 0, _master_record_offset + _master_record_size + _prog_size, true);
     if (ret) {
         return ret;
@@ -1501,6 +1504,7 @@ int TDBStore::check_erase_before_write(uint8_t area, uint32_t offset, uint32_t s
     }
 
     if (erase) {
+        Watchdog::get_instance().kick();
         int ret = erase_area(area, start_offset, end_offset - start_offset);
         if (ret != MBED_SUCCESS) {
             return MBED_ERROR_WRITE_FAILED;
