@@ -175,9 +175,22 @@ int TDBStore::erase_area(uint8_t area, uint32_t offset, uint32_t size)
 {
     uint32_t bd_offset = _area_params[area].address + offset;
 
-    int ret = _buff_bd->erase(bd_offset, size);
-    if (ret) {
-        return ret;
+    // Erase sector-by-sector with watchdog kicks to prevent timeout
+    // during large erases (GC can erase 32KB+)
+    uint32_t erase_pos = bd_offset;
+    uint32_t remaining = size;
+    while (remaining > 0) {
+        uint32_t erase_size = _buff_bd->get_erase_size(erase_pos);
+        if (erase_size > remaining) {
+            erase_size = remaining;
+        }
+        Watchdog::get_instance().kick();
+        int ret = _buff_bd->erase(erase_pos, erase_size);
+        if (ret) {
+            return ret;
+        }
+        erase_pos += erase_size;
+        remaining -= erase_size;
     }
 
     if (_buff_bd->get_erase_value() == -1) {
@@ -190,7 +203,7 @@ int TDBStore::erase_area(uint8_t area, uint32_t offset, uint32_t size)
         memset(_work_buf, 0xFF, _work_buf_size);
         while (size) {
             uint32_t chunk = std::min<uint32_t>(_work_buf_size, size);
-            ret = _buff_bd->program(_work_buf, bd_offset, chunk);
+            int ret = _buff_bd->program(_work_buf, bd_offset, chunk);
             if (ret) {
                 return ret;
             }
@@ -950,6 +963,7 @@ int TDBStore::build_ram_table()
     offset = _master_record_offset;
 
     while (offset + sizeof(record_header_t) < _free_space_offset) {
+        Watchdog::get_instance().kick();
         ret = read_record(_active_area, offset, _key_buf, 0, 0, actual_data_size, 0,
                           true, false, false, true, hash, flags, next_offset);
 
@@ -1488,7 +1502,6 @@ int TDBStore::check_erase_before_write(uint8_t area, uint32_t offset, uint32_t s
     uint32_t end_offset;
     while (size) {
         uint32_t dist, offset_from_start;
-        int ret;
         offset_in_erase_unit(area, offset, offset_from_start, dist);
         uint32_t chunk = std::min(size, dist);
 

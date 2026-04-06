@@ -19,6 +19,7 @@
 #include "SPIFBlockDevice.h"
 #include "rtos/ThisThread.h"
 #include "mbed_critical.h"
+#include "Watchdog.h"
 
 #include <string.h>
 #include <inttypes.h>
@@ -353,6 +354,7 @@ int SPIFBlockDevice::erase(bd_addr_t addr, bd_size_t size)
 
     // For each iteration erase the largest section supported by current region
     while (size > 0) {
+        Watchdog::get_instance().kick();
 
         // iterate to find next Largest erase type ( a. supported by region, b. smaller than size)
         // find the matching instruction and erase size chunk for that type.
