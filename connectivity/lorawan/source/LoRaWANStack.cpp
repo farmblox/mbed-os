@@ -457,6 +457,11 @@ lorawan_status_t LoRaWANStack::set_device_class(const device_class_t &device_cla
     if (device_class == CLASS_B) {
         return LORAWAN_STATUS_UNSUPPORTED;
     }
+    // When switching back to Class A, clear any stale tx_ongoing flag
+    // that may have been left from a Class C session swap mid-TX.
+    if (device_class == CLASS_A) {
+        _loramac.reset_ongoing_tx(true);
+    }
     _loramac.set_device_class(device_class,
                               mbed::callback(this, &LoRaWANStack::post_process_tx_no_reception));
     return LORAWAN_STATUS_OK;
