@@ -754,6 +754,9 @@ bool SPIFBlockDevice::_is_mem_ready()
     do {
         rtos::ThisThread::sleep_for(1ms);
         retries++;
+        if (retries % 5 == 0) {
+            Watchdog::get_instance().kick();
+        }
         // Read the Status Register from device
         if (SPIF_BD_ERROR_OK != _spi_send_general_command(SPIF_RDSR, SPI_NO_ADDRESS_COMMAND, NULL, 0, status_value,
                                                           1)) {   // store received values in status_value
