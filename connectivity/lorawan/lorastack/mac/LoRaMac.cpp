@@ -1051,6 +1051,9 @@ lorawan_status_t LoRaMac::send(loramac_mhdr_t *machdr, const uint8_t fport,
     _mcps_confirmation.nb_retries = 0;
     _mcps_confirmation.ack_received = false;
     _mcps_confirmation.ul_frame_counter = _params.ul_frame_counter;
+    // Reset per-frame repetition counter so nb_retries in the TX confirmation
+    // reports the count for this frame only, not cumulative across all frames.
+    _params.ul_nb_rep_counter = 0;
 
     status = schedule_tx();
 
@@ -1134,9 +1137,19 @@ lorawan_status_t LoRaMac::schedule_tx()
             _mcps_confirmation.status = LORAMAC_EVENT_INFO_STATUS_ERROR;
             return status;
         case LORAWAN_STATUS_DUTYCYCLE_RESTRICTED:
+            // Enforce a minimum backoff of 1ms so the timer always fires.
+            // If backoff_time is 0, no timer would be started, leaving
+            // tx_ongoing=true permanently and all future sends returning
+            // LORAWAN_STATUS_WOULD_BLOCK with no recovery path.
+            if (backoff_time == 0) {
+                backoff_time = 1;
+            }
             if (backoff_time != 0) {
                 tr_debug("DC enforced: Transmitting in %lu ms", backoff_time);
                 _can_cancel_tx = true;
+                if (_device_class != CLASS_C) {
+                    _lora_phy->put_radio_to_sleep();
+                }
                 _lora_time.start(_params.timers.backoff_timer, backoff_time);
             }
             return LORAWAN_STATUS_OK;
@@ -1869,6 +1882,13 @@ void LoRaMac::disconnect()
     reset_mcps_confirmation();
     reset_mlme_confirmation();
     reset_mcps_indication();
+
+    // Clear any in-progress TX so that reconnecting after disconnect does not
+    // permanently return LORAWAN_STATUS_WOULD_BLOCK. All timers that would
+    // normally drive the state machine to call reset_ongoing_tx() (backoff,
+    // RX windows, ACK timeout) have already been stopped above, so without
+    // this explicit reset the tx_ongoing flag would be stuck at true.
+    reset_ongoing_tx(true);
 }
 
 uint8_t LoRaMac::get_fopts_len(void)
