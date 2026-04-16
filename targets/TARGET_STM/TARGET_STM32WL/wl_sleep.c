@@ -10,7 +10,9 @@
 
 #if DEVICE_SLEEP
 
-#include "stm32wlxx.h"
+#include "sleep_api.h"
+#include "us_ticker_api.h"
+#include "us_ticker_data.h"
 #include "mbed_critical.h"
 #include "mbed_error.h"
 
