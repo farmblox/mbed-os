@@ -26,7 +26,6 @@ extern int mbed_sdk_inited;
 static void wait_loop(uint32_t timeout)
 {
     uint32_t t1, t2, elapsed = 0;
-    extern uint32_t us_ticker_read(void);
     t1 = us_ticker_read();
     do {
         t2 = us_ticker_read();
