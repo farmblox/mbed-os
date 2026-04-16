@@ -310,6 +310,7 @@ public:
     static void get_packet_status(packet_status_t *pkt_status);
     static uint8_t get_modem();
     static uint8_t read_register(uint16_t addr);
+    static void write_to_register(uint16_t addr, uint8_t data);
 
 private:
 
@@ -323,7 +324,6 @@ private:
     void set_device_ready(void);
     int8_t get_rssi();
     uint8_t get_fsk_bw_reg_val(uint32_t bandwidth);
-    void write_to_register(uint16_t addr, uint8_t data);
     void write_to_register(uint16_t addr, uint8_t *data, uint8_t size);
 
     void read_register(uint16_t addr, uint8_t *buffer, uint8_t size);

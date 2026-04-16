@@ -76,6 +76,7 @@ static uint8_t _data_buffer[MAX_DATA_BUFFER_SIZE_STM32WL];
 
 static radio_operating_mode_t _operating_mode;
 static uint8_t _active_modem;
+static bool _rx_continuous = false;
 
 using namespace std::chrono;
 using namespace mbed;
@@ -289,6 +290,19 @@ static void RadioIrqProcess()
     }
 
     if ((irq_status & IRQ_RX_DONE) == IRQ_RX_DONE) {
+        // ES0506 2.2.5: Implicit Header Mode Timeout Behavior.
+        // Match ST subghz-phy radio.c IRQ_RX_DONE handling: on single-shot
+        // RxDone, force STDBY_RC then clear the RTC and mask its event so a
+        // stale timeout can't leak into the next reception.
+        if (!_rx_continuous) {
+            uint8_t stdby_rc = STDBY_RC;
+            STM32WL_LoRaRadio::write_opmode_command((uint8_t) RADIO_SET_STANDBY, &stdby_rc, 1);
+            _operating_mode = MODE_STDBY_RC;
+            STM32WL_LoRaRadio::write_to_register(SUBGHZ_RTCCTLR, 0x00);
+            STM32WL_LoRaRadio::write_to_register(SUBGHZ_EVENTMASKR,
+                STM32WL_LoRaRadio::read_register(SUBGHZ_EVENTMASKR) | (1 << 1));
+        }
+
         if ((irq_status & IRQ_CRC_ERROR) == IRQ_CRC_ERROR) {
             STM32WL_LoRaRadio::HAL_SUBGHZ_CRCErrorCallback();
         } else {
@@ -989,10 +1003,20 @@ void STM32WL_LoRaRadio::set_tx_config(radio_modems_t modem,
 
             set_modem(MODEM_LORA);
 
+            // ES0506 2.2.15: Modulation quality with 500 kHz LoRa BW
+            if (_mod_params.params.lora.bandwidth == LORA_BW_500) {
+                write_to_register(0x0889, read_register(0x0889) & ~(1 << 2));
+            } else {
+                write_to_register(0x0889, read_register(0x0889) | (1 << 2));
+            }
+
             break;
     }
     _antSwitchPaSelect = SUBGRF_SetRfTxPower(power);
     _tx_power = power;
+
+    // Trim LDO output voltage to 3.3V
+    write_to_register(0x091F, 0x7 << 1);
 
     _tx_timeout = timeout;
 }
@@ -1023,6 +1047,7 @@ void STM32WL_LoRaRadio::set_rx_config(radio_modems_t modem,
     } else {
         _reception_mode = RECEPTION_MODE_SINGLE;
     }
+    _rx_continuous = rx_continuous;
 
     if (fix_len == true) {
         max_payload_len = payload_len;
@@ -1112,6 +1137,16 @@ void STM32WL_LoRaRadio::set_rx_config(radio_modems_t modem,
                 _rx_timeout = 0x00000000;
             }
 
+            // AGC step threshold: avoid missing weak signals after interferer
+            write_to_register(0x08A3, read_register(0x08A3) & 0x01);
+
+            // ES0506 2.2.18: Packet loss with inverted IQ operation
+            if (_packet_params.params.lora.invert_IQ == LORA_IQ_INVERTED) {
+                write_to_register(0x0736, read_register(0x0736) & ~(1 << 2));
+            } else {
+                write_to_register(0x0736, read_register(0x0736) | (1 << 2));
+            }
+
             break;
         }
 
@@ -1158,23 +1193,6 @@ void STM32WL_LoRaRadio::send(uint8_t *buffer, uint8_t size)
 
     set_modulation_params(&_mod_params);
     set_packet_params(&_packet_params);
-
-    // ES0506 2.2.15: Sensitivity degradation with 500 kHz LoRa BW
-    {
-        uint8_t val = read_register(0x0889);
-        if (_mod_params.params.lora.bandwidth == LORA_BW_500) {
-            write_to_register(0x0889, val & ~0x04);
-        } else {
-            write_to_register(0x0889, val | 0x04);
-        }
-    }
-
-    // ES0506 2.2.18: Packet loss with inverted IQ operation
-    // Standard IQ for TX uplinks: set bit 2
-    {
-        uint8_t iq_pol = read_register(0x0736);
-        write_to_register(0x0736, iq_pol | 0x04);
-    }
 
     write_fifo(buffer, size);
     uint8_t buf[3];
@@ -1223,27 +1241,6 @@ void STM32WL_LoRaRadio::receive(void)
                           IRQ_RADIO_NONE);
         set_modulation_params(&_mod_params);
         set_packet_params(&_packet_params);
-
-        // ES0506 2.2.15: Sensitivity degradation with 500 kHz LoRa BW
-        {
-            uint8_t val = read_register(0x0889);
-            if (_mod_params.params.lora.bandwidth == LORA_BW_500) {
-                write_to_register(0x0889, val & ~0x04);
-            } else {
-                write_to_register(0x0889, val | 0x04);
-            }
-        }
-
-        // ES0506 2.2.18: Packet loss with inverted IQ operation
-        // Inverted IQ for RX downlinks: clear bit 2
-        {
-            uint8_t iq_pol = read_register(0x0736);
-            if (_packet_params.params.lora.invert_IQ == LORA_IQ_INVERTED) {
-                write_to_register(0x0736, iq_pol & ~0x04);
-            } else {
-                write_to_register(0x0736, iq_pol | 0x04);
-            }
-        }
     }
 
 

@@ -138,6 +138,10 @@ typedef enum {
 #define SUBGHZ_PCR                                  0x091A
 /*Sub-GHz radio SMPS control 2 register */
 #define SUBGHZ_SMPSC2R                              0x0923
+/*Sub-GHz radio RTC control register (ES0506 2.2.5 workaround)*/
+#define SUBGHZ_RTCCTLR                              0x0902
+/*Sub-GHz radio event mask register (ES0506 2.2.5 workaround)*/
+#define SUBGHZ_EVENTMASKR                           0x0944
 
 #define SMPS_CLK_DET_ENABLE ((uint8_t) (1<<6))
 
