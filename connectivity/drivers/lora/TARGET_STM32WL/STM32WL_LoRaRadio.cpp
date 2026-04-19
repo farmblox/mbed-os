@@ -289,11 +289,13 @@ static void RadioIrqProcess()
         STM32WL_LoRaRadio::HAL_SUBGHZ_TxCpltCallback();
     }
 
+    // Per ST subghz-phy radio.c (and the STM32WLxx HAL's HAL_SUBGHZ_IRQHandler),
+    // IRQ_RX_DONE, IRQ_CRC_ERROR, and IRQ_HEADER_ERROR are dispatched
+    // independently — each fires its own callback even when multiple bits
+    // are set in a single IRQ pass. Each non-continuous case also forces
+    // STDBY_RC (ES0506 2.2.5 implicit-header-timeout workaround).
+
     if ((irq_status & IRQ_RX_DONE) == IRQ_RX_DONE) {
-        // ES0506 2.2.5: Implicit Header Mode Timeout Behavior.
-        // Match ST subghz-phy radio.c IRQ_RX_DONE handling: on single-shot
-        // RxDone, force STDBY_RC then clear the RTC and mask its event so a
-        // stale timeout can't leak into the next reception.
         if (!_rx_continuous) {
             uint8_t stdby_rc = STDBY_RC;
             STM32WL_LoRaRadio::write_opmode_command((uint8_t) RADIO_SET_STANDBY, &stdby_rc, 1);
@@ -302,11 +304,27 @@ static void RadioIrqProcess()
             STM32WL_LoRaRadio::write_to_register(SUBGHZ_EVENTMASKR,
                 STM32WL_LoRaRadio::read_register(SUBGHZ_EVENTMASKR) | (1 << 1));
         }
+        STM32WL_LoRaRadio::HAL_SUBGHZ_RxCpltCallback();
+    }
 
-        if ((irq_status & IRQ_CRC_ERROR) == IRQ_CRC_ERROR) {
-            STM32WL_LoRaRadio::HAL_SUBGHZ_CRCErrorCallback();
-        } else {
-            STM32WL_LoRaRadio::HAL_SUBGHZ_RxCpltCallback();
+    if ((irq_status & IRQ_CRC_ERROR) == IRQ_CRC_ERROR) {
+        if (!_rx_continuous) {
+            uint8_t stdby_rc = STDBY_RC;
+            STM32WL_LoRaRadio::write_opmode_command((uint8_t) RADIO_SET_STANDBY, &stdby_rc, 1);
+            _operating_mode = MODE_STDBY_RC;
+        }
+        STM32WL_LoRaRadio::HAL_SUBGHZ_CRCErrorCallback();
+    }
+
+    if ((irq_status & IRQ_HEADER_ERROR) == IRQ_HEADER_ERROR) {
+        if (!_rx_continuous) {
+            uint8_t stdby_rc = STDBY_RC;
+            STM32WL_LoRaRadio::write_opmode_command((uint8_t) RADIO_SET_STANDBY, &stdby_rc, 1);
+            _operating_mode = MODE_STDBY_RC;
+        }
+        // ST treats LoRa header CRC errors as an RX timeout.
+        if (_radio_events && _radio_events->rx_timeout) {
+            _radio_events->rx_timeout();
         }
     }
 
@@ -1235,8 +1253,8 @@ void STM32WL_LoRaRadio::receive(void)
     }
 
     if (_reception_mode != RECEPTION_MODE_OTHER) {
-        configure_dio_irq(IRQ_RX_DONE | IRQ_RX_TX_TIMEOUT | IRQ_CRC_ERROR,
-                          IRQ_RX_DONE | IRQ_RX_TX_TIMEOUT | IRQ_CRC_ERROR,
+        configure_dio_irq(IRQ_RX_DONE | IRQ_RX_TX_TIMEOUT | IRQ_CRC_ERROR | IRQ_HEADER_ERROR,
+                          IRQ_RX_DONE | IRQ_RX_TX_TIMEOUT | IRQ_CRC_ERROR | IRQ_HEADER_ERROR,
                           IRQ_RADIO_NONE,
                           IRQ_RADIO_NONE);
         set_modulation_params(&_mod_params);
