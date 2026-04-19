@@ -290,10 +290,15 @@ static void RadioIrqProcess()
     }
 
     // Per ST subghz-phy radio.c (and the STM32WLxx HAL's HAL_SUBGHZ_IRQHandler),
-    // IRQ_RX_DONE, IRQ_CRC_ERROR, and IRQ_HEADER_ERROR are dispatched
-    // independently — each fires its own callback even when multiple bits
-    // are set in a single IRQ pass. Each non-continuous case also forces
-    // STDBY_RC (ES0506 2.2.5 implicit-header-timeout workaround).
+    // IRQ_RX_DONE and IRQ_CRC_ERROR are dispatched independently — each fires
+    // its own callback even when both bits are set in a single IRQ pass. Each
+    // non-continuous case also forces STDBY_RC (ES0506 2.2.5 implicit-header-
+    // timeout workaround).
+    //
+    // IRQ_HEADER_ERROR is intentionally NOT enabled in the DIO mask: routing
+    // spurious header-CRC failures to rx_timeout caused Class A link-check
+    // downlinks to be dropped even at strong signal. Letting the radio stay
+    // in RX until a good header (or the RX timeout) is the safer default.
 
     if ((irq_status & IRQ_RX_DONE) == IRQ_RX_DONE) {
         if (!_rx_continuous) {
@@ -314,18 +319,6 @@ static void RadioIrqProcess()
             _operating_mode = MODE_STDBY_RC;
         }
         STM32WL_LoRaRadio::HAL_SUBGHZ_CRCErrorCallback();
-    }
-
-    if ((irq_status & IRQ_HEADER_ERROR) == IRQ_HEADER_ERROR) {
-        if (!_rx_continuous) {
-            uint8_t stdby_rc = STDBY_RC;
-            STM32WL_LoRaRadio::write_opmode_command((uint8_t) RADIO_SET_STANDBY, &stdby_rc, 1);
-            _operating_mode = MODE_STDBY_RC;
-        }
-        // ST treats LoRa header CRC errors as an RX timeout.
-        if (_radio_events && _radio_events->rx_timeout) {
-            _radio_events->rx_timeout();
-        }
     }
 
     if ((irq_status & IRQ_CAD_DONE) == IRQ_CAD_DONE) {
@@ -1253,8 +1246,8 @@ void STM32WL_LoRaRadio::receive(void)
     }
 
     if (_reception_mode != RECEPTION_MODE_OTHER) {
-        configure_dio_irq(IRQ_RX_DONE | IRQ_RX_TX_TIMEOUT | IRQ_CRC_ERROR | IRQ_HEADER_ERROR,
-                          IRQ_RX_DONE | IRQ_RX_TX_TIMEOUT | IRQ_CRC_ERROR | IRQ_HEADER_ERROR,
+        configure_dio_irq(IRQ_RX_DONE | IRQ_RX_TX_TIMEOUT | IRQ_CRC_ERROR,
+                          IRQ_RX_DONE | IRQ_RX_TX_TIMEOUT | IRQ_CRC_ERROR,
                           IRQ_RADIO_NONE,
                           IRQ_RADIO_NONE);
         set_modulation_params(&_mod_params);
