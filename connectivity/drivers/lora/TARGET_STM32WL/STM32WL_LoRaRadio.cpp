@@ -289,18 +289,10 @@ static void RadioIrqProcess()
         STM32WL_LoRaRadio::HAL_SUBGHZ_TxCpltCallback();
     }
 
-    // Per ST subghz-phy radio.c (and the STM32WLxx HAL's HAL_SUBGHZ_IRQHandler),
-    // IRQ_RX_DONE and IRQ_CRC_ERROR are dispatched independently — each fires
-    // its own callback even when both bits are set in a single IRQ pass. Each
-    // non-continuous case also forces STDBY_RC (ES0506 2.2.5 implicit-header-
-    // timeout workaround).
-    //
-    // IRQ_HEADER_ERROR is intentionally NOT enabled in the DIO mask: routing
-    // spurious header-CRC failures to rx_timeout caused Class A link-check
-    // downlinks to be dropped even at strong signal. Letting the radio stay
-    // in RX until a good header (or the RX timeout) is the safer default.
-
     if ((irq_status & IRQ_RX_DONE) == IRQ_RX_DONE) {
+        // ES0506 2.2.5: Implicit Header Mode Timeout Behavior.
+        // On single-shot RxDone, force STDBY_RC then clear the RTC and mask
+        // its event so a stale timeout can't leak into the next reception.
         if (!_rx_continuous) {
             uint8_t stdby_rc = STDBY_RC;
             STM32WL_LoRaRadio::write_opmode_command((uint8_t) RADIO_SET_STANDBY, &stdby_rc, 1);
@@ -309,16 +301,12 @@ static void RadioIrqProcess()
             STM32WL_LoRaRadio::write_to_register(SUBGHZ_EVENTMASKR,
                 STM32WL_LoRaRadio::read_register(SUBGHZ_EVENTMASKR) | (1 << 1));
         }
-        STM32WL_LoRaRadio::HAL_SUBGHZ_RxCpltCallback();
-    }
 
-    if ((irq_status & IRQ_CRC_ERROR) == IRQ_CRC_ERROR) {
-        if (!_rx_continuous) {
-            uint8_t stdby_rc = STDBY_RC;
-            STM32WL_LoRaRadio::write_opmode_command((uint8_t) RADIO_SET_STANDBY, &stdby_rc, 1);
-            _operating_mode = MODE_STDBY_RC;
+        if ((irq_status & IRQ_CRC_ERROR) == IRQ_CRC_ERROR) {
+            STM32WL_LoRaRadio::HAL_SUBGHZ_CRCErrorCallback();
+        } else {
+            STM32WL_LoRaRadio::HAL_SUBGHZ_RxCpltCallback();
         }
-        STM32WL_LoRaRadio::HAL_SUBGHZ_CRCErrorCallback();
     }
 
     if ((irq_status & IRQ_CAD_DONE) == IRQ_CAD_DONE) {
