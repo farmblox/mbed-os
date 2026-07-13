@@ -80,6 +80,11 @@ void LoRaPHY::put_radio_to_sleep()
     _radio->unlock();
 }
 
+uint8_t LoRaPHY::get_radio_status()
+{
+    return _radio->get_status();
+}
+
 void LoRaPHY::put_radio_to_standby()
 {
     _radio->lock();

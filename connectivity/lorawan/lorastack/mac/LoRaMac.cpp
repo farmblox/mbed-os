@@ -518,6 +518,11 @@ void LoRaMac::handle_data_frame(const uint8_t *const payload,
             _mcps_indication.dl_frame_counter = downlink_counter;
             _mcps_indication.pending = false;
 
+            // Local patch: this valid-but-repeated frame concludes the exchange —
+            // stop its receive windows exactly like the accepted-frame path below.
+            // Leaving them armed lets a stale window fire into the NEXT uplink's
+            // transmission and silently abort it (TX-watchdog reset in the field).
+            stop_rx_window_timers();
             return;
         }
 
@@ -539,6 +544,8 @@ void LoRaMac::handle_data_frame(const uint8_t *const payload,
                 _mcps_indication.pending = false;
                 _mcps_indication.status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED;
 
+                // Local patch: see multicast duplicate above — conclude the windows.
+                stop_rx_window_timers();
                 return;
             }
         } else if (msg_type == FRAME_TYPE_DATA_UNCONFIRMED_DOWN) {
@@ -551,6 +558,8 @@ void LoRaMac::handle_data_frame(const uint8_t *const payload,
                 _mcps_indication.pending = false;
                 _mcps_indication.status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED;
 
+                // Local patch: see multicast duplicate above — conclude the windows.
+                stop_rx_window_timers();
                 return;
             }
         }
@@ -559,12 +568,7 @@ void LoRaMac::handle_data_frame(const uint8_t *const payload,
 
     // message is intended for us and MIC have passed, stop RX2 Window
     // Spec: 3.3.4 Receiver Activity during the receive windows
-    if (get_current_slot() == RX_SLOT_WIN_1) {
-        _lora_time.stop(_params.timers.rx_window2_timer);
-    } else {
-        _lora_time.stop(_params.timers.rx_window1_timer);
-        _lora_time.stop(_params.timers.rx_window2_timer);
-    }
+    stop_rx_window_timers();
 
     if (_device_class == CLASS_C) {
         _lora_time.stop(_rx2_closure_timer_for_class_c);
@@ -757,6 +761,13 @@ void LoRaMac::on_radio_rx_timeout(bool is_timeout)
     _demod_ongoing = false;
     if (_device_class == CLASS_A) {
         _lora_phy->put_radio_to_sleep();
+    } else if (_device_class == CLASS_C && !_continuous_rx2_window_open) {
+        // Local patch: a Class-C device must return to continuous RX2 whenever a
+        // window concludes. Stock mbed re-opens RX2 only on the RX_DONE path
+        // (on_radio_rx_done); after an EMPTY RX1 window in Class C nothing ever
+        // re-opened continuous RX and the device sat deaf until an external event
+        // (observed as a whole multicast session lost to the FUOTA timeout).
+        open_rx2_window();
     }
 
     if (_params.rx_slot == RX_SLOT_WIN_1) {
@@ -874,8 +885,32 @@ void LoRaMac::on_backoff_timer_expiry(void)
     }
 }
 
+void LoRaMac::stop_rx_window_timers(void)
+{
+    // Same slot-aware stop the accepted-frame path performs (spec 3.3.4): once
+    // the exchange is concluded, its remaining receive windows must not fire.
+    if (get_current_slot() == RX_SLOT_WIN_1) {
+        _lora_time.stop(_params.timers.rx_window2_timer);
+    } else {
+        _lora_time.stop(_params.timers.rx_window1_timer);
+        _lora_time.stop(_params.timers.rx_window2_timer);
+    }
+}
+
 void LoRaMac::open_rx1_window(void)
 {
+    // Local patch: a stale RX-window timer (left armed by a discarded duplicate
+    // downlink, or leaked by a double-armed timer) must never re-task the radio
+    // while a NEW uplink is transmitting — sub-GHz radios abort the TX on set_rx
+    // and neither TxDone nor TxTimeout ever fires afterwards, so the MAC wedges
+    // with no timers armed (confirmed uplinks then wait forever on an ACK-timeout
+    // timer that only on_radio_tx_done() would have started). A legitimate RX1/RX2
+    // can never coincide with TX_RUNNING: their timers are armed from
+    // on_radio_tx_done() itself.
+    if (_lora_phy->get_radio_status() == RF_TX_RUNNING) {
+        tr_warn("RX1 window timer fired during TX — stale window skipped");
+        return;
+    }
     Lock lock(*this);
     _demod_ongoing = true;
     _continuous_rx2_window_open = false;
@@ -909,6 +944,12 @@ void LoRaMac::open_rx1_window(void)
 
 void LoRaMac::open_rx2_window()
 {
+    // Local patch: see open_rx1_window — never abort an in-flight TX for a
+    // stale receive window.
+    if (_lora_phy->get_radio_status() == RF_TX_RUNNING) {
+        tr_warn("RX2 window timer fired during TX — stale window skipped");
+        return;
+    }
     if (_demod_ongoing) {
         tr_info("RX1 Demodulation ongoing, skip RX2 window opening");
         return;
@@ -1445,6 +1486,13 @@ void LoRaMac::set_device_class(const device_class_t &device_class,
         _lora_phy->put_radio_to_sleep();
     } else if (CLASS_C == _device_class) {
         _params.is_node_ack_requested = false;
+        // Local patch: entering Class C supersedes any in-flight Class-A RX window —
+        // the sleep below kills it at the radio, so its timeout IRQ never fires and
+        // _demod_ongoing would strand true, making the open_rx2_window() below skip
+        // silently (a permanently deaf Class C). Clear the demod state and stop the
+        // Class-A window timers before re-tasking the radio.
+        _demod_ongoing = false;
+        stop_rx_window_timers();
         _lora_phy->put_radio_to_sleep();
         _lora_phy->compute_rx_win_params(_params.sys_params.rx2_channel.datarate,
                                          MBED_CONF_LORA_DOWNLINK_PREAMBLE_LENGTH,

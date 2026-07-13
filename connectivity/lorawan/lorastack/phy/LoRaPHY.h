@@ -77,6 +77,13 @@ public:
      */
     void put_radio_to_standby(void);
 
+    /** Current radio driver state (RF_IDLE / RF_RX_RUNNING / RF_TX_RUNNING ...).
+     *
+     * Local patch: lets the MAC refuse to re-task the radio (e.g. open a stale
+     * RX window) while a transmission is in flight — see LoRaMac::open_rx*_window.
+     */
+    uint8_t get_radio_status(void);
+
     /** Puts radio in receive mode.
      *
      * Requests the radio driver to enter receive mode.

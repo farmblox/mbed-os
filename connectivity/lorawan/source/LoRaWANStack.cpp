@@ -801,6 +801,20 @@ void LoRaWANStack::process_reception_timeout(bool is_timeout)
      */
     if (slot == RX_SLOT_WIN_2) {
         post_process_tx_no_reception();
+    } else if (slot == RX_SLOT_WIN_1 && _loramac.nwk_joined()
+               && _loramac.get_device_class() == CLASS_A
+               && !_loramac.is_rx2_window_pending()) {
+        // Local patch: RX1 failed AFTER the RX2 deadline had already passed — the
+        // demod ran long because RX1 caught an unrelated preamble (routine in a
+        // downlink-dense network, e.g. a Class-C multicast FUOTA campaign running
+        // nearby) — and on_radio_rx_timeout therefore stopped the RX2 timer. RX2
+        // will never open, so without this branch NOTHING ever post-processes the
+        // uplink: tx_ongoing stays set and no TX_DONE/TX_ERROR reaches the
+        // application (observed in the field and in emulation as TX-watchdog
+        // resets mid-FUOTA). The exchange is exactly as concluded as an RX2
+        // timeout — post-process it now.
+        tr_debug("RX1 failed with RX2 already expired — concluding exchange");
+        post_process_tx_no_reception();
     }
 }
 

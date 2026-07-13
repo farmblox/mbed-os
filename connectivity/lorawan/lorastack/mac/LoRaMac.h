@@ -551,6 +551,26 @@ private:
     void open_rx1_window(void);
 
     /**
+     * Local patch: stop the pending RX1/RX2 window timers of the CURRENT
+     * exchange (slot-aware, same logic the accepted-frame path uses).
+     */
+    void stop_rx_window_timers(void);
+
+public:
+    /**
+     * Local patch: whether the RX2 window is still scheduled (timer armed).
+     * False after it fired OR was stopped — e.g. when an RX1 whose demod ran
+     * past the RX2 deadline stopped it in on_radio_rx_timeout. Used by the
+     * stack to detect an exchange whose RX2 will never happen.
+     */
+    bool is_rx2_window_pending(void) const
+    {
+        return _params.timers.rx_window2_timer.timer_id != 0;
+    }
+
+private:
+
+    /**
      * At the end of an RX2 window timer, an RX2 window is opened using this method.
      */
     void open_rx2_window(void);
